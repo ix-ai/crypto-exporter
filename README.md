@@ -1,5 +1,5 @@
-# poloniex-exporter
-Prometheus exporter, written in python, for Poloniex
+# crypto-exporter
+Prometheus exporter, written in python, for Crypto Exchanges
 
 ## Usage
 ```
