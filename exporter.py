@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prometheus Exporter for Crypto Exchanges"""
+""" Prometheus Exporter for Crypto Exchanges """
 
 import logging
 import time
@@ -43,7 +43,7 @@ class CryptoCollector():
             self.selected_exchange.uid = os.environ.get("API_UID")
 
     def get_tickers(self):
-        """Connects to the exchange and downloads the price tickers"""
+        """ Connects to the exchange and downloads the price tickers """
 
         LOG.debug('Loading Markets')
         markets_loaded = False
@@ -105,7 +105,7 @@ class CryptoCollector():
         LOG.debug('Found the following ticker rates: {}'.format(self.rates))
 
     def get_accounts(self):
-        """Gets the account data from the exchange"""
+        """ Gets the account data from the exchange """
 
         if self.has_api_credentials:
             accounts = {}
@@ -134,7 +134,7 @@ class CryptoCollector():
         LOG.debug('Found the following accounts: {}'.format(self.accounts))
 
     def collect(self):
-        """The only function that does the collecting around here"""
+        """ The only function that does the collecting around here """
         metrics = {
             'exchange_rate': GaugeMetricFamily(
                 'exchange_rate',
@@ -176,6 +176,7 @@ class CryptoCollector():
             yield metric
 
     def describe(self):
+        """ See https://github.com/prometheus/client_python#custom-collectors """
         return []
 
 
