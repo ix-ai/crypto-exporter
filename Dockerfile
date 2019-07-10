@@ -1,5 +1,5 @@
 FROM hub.ix.ai/docker/alpine:latest
-LABEL maintainer "docker@ix.ai"
+LABEL ai.ix.maintainer="docker@ix.ai"
 
 RUN apk add --no-cache python3-dev libffi-dev openssl-dev && \
     pip3 install ccxt
