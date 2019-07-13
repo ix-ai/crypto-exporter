@@ -1,5 +1,6 @@
 variables:
   DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
 
 stages:
   - lint
@@ -11,19 +12,17 @@ services:
 pylint:
   image: python:latest
   stage: lint
-  only:
-    - master
   script:
+    - curl -o .pylintrc https://tool.ix.ai/.pylintrc
     - pip install prometheus_client ccxt pylint requests
-    - pylint --rcfile=.pylintrc *.py
+    - pylint --rcfile=.pylintrc src/*.py
 
 build:
   image: docker:latest
   stage: build
-  except:
-    - master
-  before_script:
-    - export IMAGE_TAG=${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}
+  only:
+    - /^latest$/
+    - tags
   script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - docker build -f Dockerfile -t ${IMAGE_TAG} .

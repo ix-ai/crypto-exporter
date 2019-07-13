@@ -1,5 +1,5 @@
 # crypto-exporter
-Prometheus exporter, written in python, for Crypto Exchanges
+Prometheus exporter, written in python, for different exchanges
 
 ## Usage
 ```
@@ -15,7 +15,7 @@ docker run --rm -it -p 9308:9308 \
 ### Supported variables
 * `API_KEY` (no default) - set this to your Exchange API key
 * `API_SECRET` (no default) - set this to your Exchange API secret
-* `API_UID` (no default) - only neeeded for certain exchanges (like cex)
+* `API_UID` (no default) - only needed for certain exchanges (like cex)
 * `EXCHANGE` (no default) - see below
 * `LOGLEVEL` (defaults to `INFO`)
 

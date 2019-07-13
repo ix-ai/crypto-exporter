@@ -6,7 +6,7 @@ RUN apk add --no-cache python3-dev libffi-dev openssl-dev && \
 
 ENV LOGLEVEL=INFO
 
-COPY exporter.py /
+COPY src/exporter.py /
 
 EXPOSE 9308
 
