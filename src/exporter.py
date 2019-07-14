@@ -54,6 +54,7 @@ class CryptoCollector():
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
                 LOG.warning('{}'.format(error))
                 time.sleep(1)
+                break
 
         if self.selected_exchange.has['fetchTickers']:
             LOG.debug('Loading Tickers')
