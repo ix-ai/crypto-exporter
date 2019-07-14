@@ -56,17 +56,16 @@ class CryptoCollector():
                 time.sleep(1)
                 break
 
+        tickers = {}
         try:
             if self.selected_exchange.has['fetchTickers']:
                 LOG.debug('Loading Tickers')
                 tickers = self.selected_exchange.fetch_tickers()
             elif self.selected_exchange.has['fetchCurrencies']:
-                tickers = {}
                 for symbol in self.selected_exchange.symbols:
                     LOG.debug('Loading Symbol {}'.format(symbol))
                     tickers.update({symbol: {'last': self.selected_exchange.fetch_ticker(symbol)['last']}})
             else:
-                tickers = {}
                 if not self.markets:
                     LOG.debug('Fetching markets')
                     self.markets = self.selected_exchange.fetch_markets()
