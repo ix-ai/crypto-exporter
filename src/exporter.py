@@ -161,7 +161,7 @@ class CryptoCollector():
         self.get_accounts()
         for currency in self.accounts:
             for account_type in self.accounts[currency]:  # free / used
-                if self.accounts[currency][account_type] > 0:
+                if self.accounts[currency].get(account_type, 0) > 0:
                     metrics['account_balance'].add_metric(
                         value=(self.accounts[currency][account_type]),
                         labels=[
