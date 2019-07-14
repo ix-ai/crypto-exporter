@@ -1,6 +1,7 @@
 variables:
   DOCKER_DRIVER: overlay2
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  CCXT: 1.18.928
 
 stages:
   - lint
@@ -25,5 +26,6 @@ build:
     - tags
   script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - docker build -f Dockerfile -t ${IMAGE_TAG} .
+    - echo "Building with ccxt<=${CCXT}"
+    - docker build -f Dockerfile -t ${IMAGE_TAG} --build-arg CCXT="${CCXT}" .
     - docker push ${IMAGE_TAG}

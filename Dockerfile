@@ -1,8 +1,9 @@
 FROM hub.ix.ai/docker/alpine:latest
 LABEL ai.ix.maintainer="docker@ix.ai"
+ARG CCXT
 
 RUN apk add --no-cache python3-dev libffi-dev openssl-dev && \
-    pip3 install ccxt
+    pip3 install "ccxt<=${CCXT}"
 
 ENV LOGLEVEL=INFO
 
