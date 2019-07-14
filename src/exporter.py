@@ -52,43 +52,35 @@ class CryptoCollector():
                 self.selected_exchange.loadMarkets(True)
                 markets_loaded = True
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                LOG.warning('{}'.format(error))
+                LOG.warning('Exception caught: {}'.format(error))
                 time.sleep(1)
                 break
 
-        if self.selected_exchange.has['fetchTickers']:
-            LOG.debug('Loading Tickers')
-            tickers = self.selected_exchange.fetch_tickers()
-        elif self.selected_exchange.has['fetchCurrencies']:
-            tickers = {}
-            for symbol in self.selected_exchange.symbols:
-                LOG.debug('Loading Symbol {}'.format(symbol))
-                try:
+        try:
+            if self.selected_exchange.has['fetchTickers']:
+                LOG.debug('Loading Tickers')
+                tickers = self.selected_exchange.fetch_tickers()
+            elif self.selected_exchange.has['fetchCurrencies']:
+                tickers = {}
+                for symbol in self.selected_exchange.symbols:
+                    LOG.debug('Loading Symbol {}'.format(symbol))
+                    tickers.update({symbol: {'last': self.selected_exchange.fetch_ticker(symbol)['last']}})
+            else:
+                tickers = {}
+                if not self.markets:
+                    LOG.debug('Fetching markets')
+                    self.markets = self.selected_exchange.fetch_markets()
+                for market in self.markets:
+                    symbol = market.get('symbol')
+                    LOG.debug('Loading Symbol {}'.format(symbol))
                     tickers.update({
                         symbol: {
                             'last': self.selected_exchange.fetch_ticker(symbol)['last']
                         }
                     })
-                except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                    LOG.warning('{}'.format(error))
-                time.sleep(1)  # don't hit the rate limit
-        else:
-            tickers = {}
-            if not self.markets:
-                LOG.debug('Fetching markets')
-                self.markets = self.selected_exchange.fetch_markets()
-            for market in self.markets:
-                symbol = market.get('symbol')
-                LOG.debug('Loading Symbol {}'.format(symbol))
-                try:
-                    tickers.update({
-                        symbol: {
-                            'last': self.selected_exchange.fetch_ticker(symbol)['last']
-                        }
-                    })
-                except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                    LOG.warning('{}'.format(error))
-                time.sleep(1)  # don't hit the rate limit
+        except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
+            LOG.warning('Exception caught: {}'.format(error))
+            time.sleep(1)  # don't hit the rate limit
 
         for ticker in tickers:
             currencies = ticker.split('/')
