@@ -15,7 +15,7 @@ pylint:
   stage: lint
   script:
     - curl -o .pylintrc https://tool.ix.ai/.pylintrc
-    - pip install prometheus_client ccxt pylint requests
+    - pip install prometheus_client "ccxt<=${CCXT}" pylint requests
     - pylint --rcfile=.pylintrc src/*.py
 
 build:
