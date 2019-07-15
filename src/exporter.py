@@ -6,6 +6,7 @@ import time
 import os
 import sys
 import ccxt
+import pygelf
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, GaugeMetricFamily
 
@@ -16,6 +17,23 @@ logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+
+def configure_logging():
+    """ Configures the logging """
+    gelf_enabled: False
+
+    if os.environ.get('GELF_HOST'):
+        GELF = pygelf.GelfUdpHandler(
+            host=os.environ.get('GELF_HOST'),
+            port=int(os.environ.get('GELF_PORT', 12201)),
+            debug=True,
+            include_extra_fields=True,
+            _exchange=os.environ.get('EXCHANGE', 'unconfigured')
+        )
+        LOG.addHandler(GELF)
+        gelf_enabled = True
+    LOG.info('Initialized logging with GELF enabled: {}'.format(gelf_enabled))
 
 
 class CryptoCollector():
@@ -33,7 +51,7 @@ class CryptoCollector():
         self.exchange = os.environ.get('EXCHANGE')
 
         selected_exchange = getattr(ccxt, self.exchange)
-        self.selected_exchange = selected_exchange({'nonce': ccxt.poloniex.milliseconds})
+        self.selected_exchange = selected_exchange({'nonce': selected_exchange.milliseconds})
         if os.environ.get("API_KEY") and os.environ.get("API_SECRET"):
             self.selected_exchange.apiKey = os.environ.get("API_KEY")
             self.selected_exchange.secret = os.environ.get("API_SECRET")
@@ -52,7 +70,7 @@ class CryptoCollector():
                 self.selected_exchange.loadMarkets(True)
                 markets_loaded = True
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                LOG.warning('Exception caught: {}'.format(error))
+                LOG.exception('Exception caught: {}'.format(error))
                 time.sleep(1)
                 break
 
@@ -78,10 +96,10 @@ class CryptoCollector():
                         }
                     })
         except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-            LOG.warning('Exception caught: {}'.format(error))
+            LOG.exception('Exception caught: {}'.format(error))
             time.sleep(1)  # don't hit the rate limit
         except ccxt.DDoSProtection as error:
-            LOG.warning('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
+            LOG.exception('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
             time.sleep(10)
 
         for ticker in tickers:
@@ -108,11 +126,17 @@ class CryptoCollector():
                 accounts = self.selected_exchange.fetch_balance()
                 self.accounts = {}
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                LOG.warning("{}".format(error))
+                LOG.exception('Exception caught: {}'.format(error))
             except ccxt.AuthenticationError:
-                LOG.error("Can't authenticate to read the accounts. Check your API_KEY/API_SECRET/API_UID.")
-                LOG.error("Disabling the credentials.")
+                LOG.exception((
+                    "Can't authenticate to read the accounts.",
+                    "Check your API_KEY/API_SECRET/API_UID.",
+                    "Disabling the credentials."
+                ))
                 self.has_api_credentials = False
+            except ccxt.DDoSProtection as error:
+                LOG.exception('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
+                time.sleep(10)
 
             if accounts.get('free'):
                 for currency in accounts['free']:
@@ -176,8 +200,10 @@ class CryptoCollector():
 
 
 if __name__ == '__main__':
-    LOG.info("Starting")
+    configure_logging()
+    PORT = int(os.environ.get('PORT', 9308))
+    LOG.info("Starting on port {}".format(PORT))
     REGISTRY.register(CryptoCollector())
-    start_http_server(9308)
+    start_http_server(PORT)
     while True:
         time.sleep(1)
