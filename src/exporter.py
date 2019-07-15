@@ -80,6 +80,9 @@ class CryptoCollector():
         except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
             LOG.warning('Exception caught: {}'.format(error))
             time.sleep(1)  # don't hit the rate limit
+        except ccxt.DDoSProtection as error:
+            LOG.warning('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
+            time.sleep(10)
 
         for ticker in tickers:
             currencies = ticker.split('/')
