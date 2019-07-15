@@ -2,6 +2,7 @@ variables:
   DOCKER_DRIVER: overlay2
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   CCXT: 1.18.928
+  PORT: 9308
 
 stages:
   - lint
@@ -15,7 +16,7 @@ pylint:
   stage: lint
   script:
     - curl -o .pylintrc https://tool.ix.ai/.pylintrc
-    - pip install prometheus_client "ccxt<=${CCXT}" pylint requests
+    - pip install prometheus_client "ccxt<=${CCXT}" pylint requests pygelf
     - pylint --rcfile=.pylintrc src/*.py
 
 build:
@@ -24,8 +25,9 @@ build:
   only:
     - /^latest$/
     - tags
+    - /(.*)-dev$/
   script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - echo "Building with ccxt<=${CCXT}"
-    - docker build -f Dockerfile -t ${IMAGE_TAG} --build-arg CCXT="${CCXT}" .
+    - docker build -f Dockerfile -t ${IMAGE_TAG} --build-arg CCXT="${CCXT}" --build-arg PORT="${PORT}" .
     - docker push ${IMAGE_TAG}
