@@ -91,11 +91,8 @@ class CryptoCollector():
                 for market in self.markets:
                     symbol = market.get('symbol')
                     LOG.debug('Loading Symbol {}'.format(symbol))
-                    tickers.update({
-                        symbol: {
-                            'last': self.selected_exchange.fetch_ticker(symbol)['last']
-                        }
-                    })
+                    tickers.update({symbol: {'last': self.selected_exchange.fetch_ticker(symbol)['last']}})
+                    time.sleep(1)  # don't hit the rate limit
         except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
             LOG.exception('Exception caught: {}'.format(error))
             time.sleep(1)  # don't hit the rate limit
