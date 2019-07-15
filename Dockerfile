@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/ix.ai/alpine:latest:latest
+FROM registry.gitlab.com/ix.ai/alpine:latest
 ARG CCXT
 ARG PORT
 
