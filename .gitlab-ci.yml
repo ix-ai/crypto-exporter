@@ -1,6 +1,5 @@
 variables:
   DOCKER_DRIVER: overlay2
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   CCXT: 1.18.928
   PORT: 9308
 
@@ -8,26 +7,41 @@ stages:
   - lint
   - build
 
-services:
-  - docker:dind
+.tags-template: &tags-definition
+  tags:
+    - ix-ai
+
+.build-template: &build-definition
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: build
+  script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"}}}" > /kaniko/.docker/config.json
+    - echo "Building with ccxt<=${CCXT}"
+    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg CCXT="${CCXT}" --build-arg PORT=${PORT} --destination ${IMAGE_TAG}
 
 pylint:
   image: python:latest
   stage: lint
   script:
     - curl -o .pylintrc https://tool.ix.ai/.pylintrc
-    - pip install prometheus_client "ccxt<=${CCXT}" pylint requests pygelf
+    - pip install pylint pygelf prometheus_client "ccxt<=${CCXT}" requests
     - pylint --rcfile=.pylintrc src/*.py
 
-build:
-  image: docker:latest
-  stage: build
+build:test:
+  except:
+    - master
+    - latest
+  before_script:
+    - export IMAGE_TAG="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+  <<: *tags-definition
+  <<: *build-definition
+
+build:release:
   only:
-    - /^latest$/
-    - tags
-    - /(.*)-dev$/
-  script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - echo "Building with ccxt<=${CCXT}"
-    - docker build -f Dockerfile -t ${IMAGE_TAG} --build-arg CCXT="${CCXT}" --build-arg PORT="${PORT}" .
-    - docker push ${IMAGE_TAG}
+    - master
+  before_script:
+    - export IMAGE_TAG="${CI_REGISTRY_IMAGE}:latest"
+  <<: *tags-definition
+  <<: *build-definition
