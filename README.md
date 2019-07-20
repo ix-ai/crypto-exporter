@@ -2,7 +2,7 @@
 Prometheus exporter, written in python, for different exchanges
 
 ## Usage
-```
+```sh
 docker run --rm -it -p 9999:9999 \
   -e EXCHANGE="poloniex" \
   -e LOGLEVEL=DEBUG \
