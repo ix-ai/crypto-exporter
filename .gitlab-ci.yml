@@ -28,6 +28,7 @@ pylint:
     - curl -o .pylintrc https://tool.ix.ai/.pylintrc
     - pip install pylint pygelf prometheus_client "ccxt<=${CCXT}" requests
     - pylint --rcfile=.pylintrc src/*.py
+  <<: *tags-definition
 
 build:test:
   except:
