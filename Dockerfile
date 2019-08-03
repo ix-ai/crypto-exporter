@@ -1,4 +1,6 @@
 FROM registry.gitlab.com/ix.ai/alpine:latest
+LABEL MAINTAINER="docker@ix.ai"
+
 ARG CCXT
 ARG PORT
 
