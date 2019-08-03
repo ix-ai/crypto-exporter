@@ -30,7 +30,7 @@ def configure_logging():
             debug=True,
             include_extra_fields=True,
             _exchange=os.environ.get('EXCHANGE', 'unconfigured'),
-            _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0]),
+            _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0][1:]),
         )
         LOG.addHandler(GELF)
         gelf_enabled = True
