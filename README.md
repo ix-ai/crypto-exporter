@@ -13,7 +13,7 @@ docker run --rm -it -p 9999:9999 \
   --name poloniex-exporter
   registry.gitlab.com/ix.ai/crypto-exporter:latest
 ```
-Or use the image from hub.docker.com/ixdotai/crypto-exporter
+Or use the image from `ixdotai/crypto-exporter`
 ```sh
 docker run --rm -it -p 9999:9999 \
   -e EXCHANGE="poloniex" \
