@@ -2,6 +2,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CCXT: 1.18.928
   PORT: 9308
+  DOCKERHUB_REPOSITORY: ixdotai/crypto-exporter
 
 stages:
   - lint
@@ -17,9 +18,8 @@ stages:
     entrypoint: [""]
   stage: build
   script:
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"}}}" > /kaniko/.docker/config.json
-    - echo "Building with ccxt<=${CCXT}"
-    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg CCXT="${CCXT}" --build-arg PORT=${PORT} --destination ${IMAGE_TAG}
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"},\"index.docker.io\":{\"auth\":\"${DOCKERHUB_REGISTRY_AUTH}\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg PORT=${PORT} --destination ${IMAGE_TAG_GITLAB} --destination ${IMAGE_TAG_GITHUB}
 
 pylint:
   image: python:latest
@@ -33,9 +33,9 @@ pylint:
 build:test:
   except:
     - master
-    - latest
   before_script:
-    - export IMAGE_TAG="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:${CI_COMMIT_REF_NAME}"
   <<: *tags-definition
   <<: *build-definition
 
@@ -43,6 +43,7 @@ build:release:
   only:
     - master
   before_script:
-    - export IMAGE_TAG="${CI_REGISTRY_IMAGE}:latest"
+    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:latest"
+    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:latest"
   <<: *tags-definition
   <<: *build-definition
