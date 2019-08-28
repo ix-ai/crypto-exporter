@@ -34,7 +34,6 @@ pylint:
 
 build:dev:
   except:
-    - master
     - tags
   before_script:
     - export DESTINATION="--destination ${CI_REGISTRY_IMAGE}:dev-${CI_COMMIT_REF_NAME}"
@@ -49,13 +48,22 @@ build:tags:
   <<: *tags-definition
   <<: *build-definition
 
-build:release:
+publish:release:
+  <<: *tags-definition
+  stage: release
+  environment:
+    name: production
+    url: https://hub.docker.com/r/${DOCKERHUB_REPO_PREFIX}/${DOCKERHUB_REPO_NAME}
   only:
-    - master
+    - tags
   before_script:
     - export DESTINATION="--destination ${CI_REGISTRY_IMAGE}:latest --destination=index.docker.io/${DOCKERHUB_REPO_PREFIX}/${DOCKERHUB_REPO_NAME}:latest"
-  <<: *tags-definition
-  <<: *build-definition
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"},\"index.docker.io\":{\"auth\":\"${DOCKERHUB_REGISTRY_AUTH}\"}}}" > /kaniko/.docker/config.json
+    - echo "FROM ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" | /kaniko/executor --dockerfile /dev/stdin ${DESTINATION}
 
 publish:readme:
   stage: release
