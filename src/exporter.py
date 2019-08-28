@@ -137,17 +137,11 @@ class CryptoCollector():
                 LOG.exception('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
                 time.sleep(10)
 
-            if accounts.get('free'):
-                for currency in accounts['free']:
+            if accounts.get('total'):
+                for currency in accounts['total']:
                     if not self.accounts.get(currency):
                         self.accounts.update({currency: {}})
-                    self.accounts[currency].update({'free': accounts['free'][currency]})
-
-            if accounts.get('used'):
-                for currency in accounts['used']:
-                    if not self.accounts.get(currency):
-                        self.accounts.update({currency: {}})
-                    self.accounts[currency].update({'used': accounts['used'][currency]})
+                    self.accounts[currency].update({'free': accounts['total'][currency]})
 
         LOG.debug('Found the following accounts: {}'.format(self.accounts))
 
@@ -178,8 +172,8 @@ class CryptoCollector():
 
         self.get_accounts()
         for currency in self.accounts:
-            for account_type in self.accounts[currency]:  # free / used
-                if self.accounts[currency].get(account_type, 0) > 0:
+            for account_type in self.accounts[currency]:
+                if self.accounts[currency].get(account_type,) and (self.accounts[currency].get(account_type, 0) > 0):
                     metrics['account_balance'].add_metric(
                         value=(self.accounts[currency][account_type]),
                         labels=[

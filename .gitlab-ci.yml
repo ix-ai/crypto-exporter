@@ -1,6 +1,6 @@
 variables:
   DOCKER_DRIVER: overlay2
-  CCXT: 1.18.928
+  CCXT: 1.18.1102
   PORT: 9308
   DOCKERHUB_REPO_PREFIX: ixdotai
   DOCKERHUB_REPO_NAME: crypto-exporter
