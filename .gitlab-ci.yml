@@ -20,7 +20,7 @@ stages:
   script:
     - echo "Building with CCXT=${CCXT} and with PORT=${PORT}"
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"},\"index.docker.io\":{\"auth\":\"${DOCKERHUB_REGISTRY_AUTH}\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg PORT=${PORT} --build-arg CCXT=${CCXT} --destination ${IMAGE_TAG_GITLAB} --destination ${IMAGE_TAG_GITHUB}
+    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg PORT=${PORT} --build-arg CCXT=${CCXT} ${DESTINATION}
 
 pylint:
   image: python:latest
@@ -35,8 +35,7 @@ build:dev:
     - master
     - tags
   before_script:
-    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:dev-${CI_COMMIT_REF_NAME}"
-    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:dev-${CI_COMMIT_REF_NAME}"
+    - export DESTINATION="--destination ${CI_REGISTRY_IMAGE}:dev-${CI_COMMIT_REF_NAME}"
   <<: *tags-definition
   <<: *build-definition
 
@@ -44,8 +43,7 @@ build:tags:
   only:
     - tags
   before_script:
-    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
-    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:${CI_COMMIT_REF_NAME}"
+    - export DESTINATION="--destination ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME} --destination=index.docker.io/${DOCKERHUB_REPOSITORY}:${CI_COMMIT_REF_NAME}"
   <<: *tags-definition
   <<: *build-definition
 
@@ -53,7 +51,6 @@ build:release:
   only:
     - master
   before_script:
-    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:latest"
-    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:latest"
+    - export DESTINATION="--destination ${CI_REGISTRY_IMAGE}:latest --destination=index.docker.io/${DOCKERHUB_REPOSITORY}:latest"
   <<: *tags-definition
   <<: *build-definition
