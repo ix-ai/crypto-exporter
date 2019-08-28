@@ -21,7 +21,7 @@ logging.basicConfig(
 
 def configure_logging():
     """ Configures the logging """
-    gelf_enabled: False
+    gelf_enabled = False
 
     if os.environ.get('GELF_HOST'):
         GELF = pygelf.GelfUdpHandler(
