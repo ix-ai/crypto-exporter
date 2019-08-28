@@ -18,21 +18,31 @@ stages:
     entrypoint: [""]
   stage: build
   script:
+    - echo "Building with CCXT=${CCXT} and with PORT=${PORT}"
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"username\":\"${CI_REGISTRY_USER}\",\"password\":\"${CI_REGISTRY_PASSWORD}\"},\"index.docker.io\":{\"auth\":\"${DOCKERHUB_REGISTRY_AUTH}\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg PORT=${PORT} --destination ${IMAGE_TAG_GITLAB} --destination ${IMAGE_TAG_GITHUB}
+    - /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/Dockerfile --build-arg PORT=${PORT} --build-arg CCXT=${CCXT} --destination ${IMAGE_TAG_GITLAB} --destination ${IMAGE_TAG_GITHUB}
 
 pylint:
   image: python:latest
   stage: lint
   script:
-    - curl -o .pylintrc https://tool.ix.ai/.pylintrc
     - pip install pylint pygelf prometheus_client "ccxt<=${CCXT}" requests
     - pylint --rcfile=.pylintrc src/*.py
   <<: *tags-definition
 
-build:test:
+build:dev:
   except:
     - master
+    - tags
+  before_script:
+    - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:dev-${CI_COMMIT_REF_NAME}"
+    - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:dev-${CI_COMMIT_REF_NAME}"
+  <<: *tags-definition
+  <<: *build-definition
+
+build:tags:
+  only:
+    - tags
   before_script:
     - export IMAGE_TAG_GITLAB="${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
     - export IMAGE_TAG_GITHUB="index.docker.io/${DOCKERHUB_REPOSITORY}:${CI_COMMIT_REF_NAME}"
