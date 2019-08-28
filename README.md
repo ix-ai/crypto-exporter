@@ -1,4 +1,10 @@
 # crypto-exporter
+
+[![Pipeline Status](https://gitlab.com/ix.ai/crypto-exporter/badges/master/pipeline.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
+[![Docker Stars](https://img.shields.io/docker/stars/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Gitlab Project](https://img.shields.io/badge/GitLab-Project-554488.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
+
 Prometheus exporter, written in python, for different crypto exchanges
 
 ## Usage
@@ -61,6 +67,25 @@ networks:
     external: true
 
 ```
+
+### Prometheus configuration with DNS service discovery
+```yml
+scrape_configs:
+- job_name: 'crypto-exporters'
+  honor_timestamps: true
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  metrics_path: /metrics
+  scheme: http
+  dns_sd_configs:
+  - names:
+    - tasks.binance
+    - tasks.bitfinex
+```
+
+Make sure that your prometheus server is able to reach the network set for the crypto-exporter.
+
+**Warning**: some exchanges (notably: gdax/coinbasepro) need more than 30s to scrape
 
 ### Supported variables
 * `EXCHANGE` (no default - **mandatory**) - see below
