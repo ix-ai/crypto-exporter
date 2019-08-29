@@ -1,0 +1,4 @@
+ccxt<=1.18.1102
+pygelf
+prometheus_client
+requests
