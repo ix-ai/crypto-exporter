@@ -50,6 +50,7 @@ class CryptoCollector():
             raise ValueError("Missing EXCHANGE environment variable. See README.md.")
 
         self.exchange = os.environ.get('EXCHANGE')
+        LOG.info('Configured exchange: {}'.format(self.exchange))
 
         selected_exchange = getattr(ccxt, self.exchange)
         self.selected_exchange = selected_exchange({'nonce': selected_exchange.milliseconds})
