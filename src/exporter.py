@@ -195,7 +195,7 @@ class CryptoCollector():
 
 if __name__ == '__main__':
     configure_logging()
-    PORT = int(os.environ.get('PORT', 9308))
+    PORT = int(os.environ.get('PORT', 9188))
     LOG.info("Starting on port {}".format(PORT))
     REGISTRY.register(CryptoCollector())
     start_http_server(PORT)
