@@ -88,14 +88,16 @@ Make sure that your prometheus server is able to reach the network set for the c
 **Warning**: some exchanges (notably: gdax/coinbasepro) need more than 30s to scrape
 
 ### Supported variables
-* `EXCHANGE` (no default - **mandatory**) - see below
-* `API_KEY` (no default) - set this to your Exchange API key
-* `API_SECRET` (no default) - set this to your Exchange API secret
-* `API_UID` (no default) - only needed for certain exchanges (like `cex`)
-* `GELF_HOST` (no default) - if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP
-* `GELF_PORT` (defaults to `12201`) - the port to use for GELF logging
-* `PORT` (defaults to `9308`) - the listen port for the exporter
-* `LOGLEVEL` (defaults to `INFO`)
+| **Variable**  | **Default** | **Mandatory** | **Description**                                                                                                        |
+|:--------------|:-----------:|:-------------:|:-----------------------------------------------------------------------------------------------------------------------|
+| `EXCHANGE`    | -           | **YES**       | see below                                                                                                              |
+| `API_KEY`     | -           | NO            | set this to your Exchange API key                                                                                      |
+| `API_SECRET`  | -           | NO            | set this to your Exchange API secret                                                                                   |
+| `API_SECRET`  | -           | NO            | only needed for certain exchanges (like `cex`)                                                                         |
+| `LOGLEVEL`    | `INFO`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels)                                                 |
+| `GELF_HOST`   | -           | NO            | if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
+| `GELF_PORT`   | `12201`     | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging                                                        |
+| `PORT`        | `9188`      | NO            | The port for prometheus metrics                                                                                        |
 
 ### Supported (tested) exchanges
 * poloniex
