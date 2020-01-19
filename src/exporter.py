@@ -9,6 +9,7 @@ import ccxt
 import pygelf
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, GaugeMetricFamily
+import constants
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(
@@ -196,7 +197,9 @@ class CryptoCollector():
 if __name__ == '__main__':
     configure_logging()
     PORT = int(os.environ.get('PORT', 9188))
-    LOG.info("Starting on port {}".format(PORT))
+    VERSION = None
+    # pylint: disable=no-member
+    LOG.info("Starting crypto-exporter {} on port {}".format(constants.VERSION, PORT))
     REGISTRY.register(CryptoCollector())
     start_http_server(PORT)
     while True:
