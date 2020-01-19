@@ -2,6 +2,9 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKERHUB_REPO_PREFIX: ixdotai
   DOCKERHUB_REPO_NAME: crypto-exporter
+  ENABLE_ARM64: 'true'
+  ENABLE_ARMv7: 'true'
 
 include:
-  - remote: https://gitlab.com/ix.ai/ci-templates/raw/master/python-project.yml
+  - project: 'ix.ai/ci-templates'
+    file: '/python-project.yml'
