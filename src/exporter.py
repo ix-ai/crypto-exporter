@@ -198,6 +198,7 @@ if __name__ == '__main__':
     configure_logging()
     PORT = int(os.environ.get('PORT', 9188))
     VERSION = None
+    # pylint: disable=no-member
     LOG.info("Starting crypto-exporter {} on port {}".format(constants.VERSION, PORT))
     REGISTRY.register(CryptoCollector())
     start_http_server(PORT)
