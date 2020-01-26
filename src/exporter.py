@@ -47,17 +47,18 @@ class CryptoCollector():
     accounts = {}
     has_api_credentials = False
     markets = None
+    nonce = 'milliseconds'
 
     def __init__(self):
         if not os.environ.get('EXCHANGE'):
             raise ValueError("Missing EXCHANGE environment variable. See README.md.")
-        nonce = os.environ.get('NONCE', 'milliseconds')
+        self.nonce = os.environ.get('NONCE', 'milliseconds')
 
         self.exchange = os.environ.get('EXCHANGE')
         LOG.info('Configured exchange: {}'.format(self.exchange))
 
         selected_exchange = getattr(ccxt, self.exchange)
-        self.selected_exchange = selected_exchange({'nonce': getattr(selected_exchange, nonce)})
+        self.selected_exchange = selected_exchange({'nonce': getattr(selected_exchange, self.nonce)})
         if os.environ.get("API_KEY") and os.environ.get("API_SECRET"):
             self.selected_exchange.apiKey = os.environ.get("API_KEY")
             self.selected_exchange.secret = os.environ.get("API_SECRET")
@@ -133,16 +134,23 @@ class CryptoCollector():
                 accounts = self.selected_exchange.fetch_balance()
                 self.accounts = {}
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                LOG.exception('Exception caught: {}'.format(error))
-            except ccxt.AuthenticationError:  # pylint: disable=duplicate-except
-                LOG.exception((
-                    "Can't authenticate to read the accounts.",
-                    "Check your API_KEY/API_SECRET/API_UID.",
-                    "Disabling the credentials."
-                ))
-                self.has_api_credentials = False
+                LOG.warning('Exception caught: {}'.format(error))
+            except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
+                LOG.error("Can't authenticate to read the accounts")
+                if 'request timestamp expired' in str(error):
+                    if self.nonce == 'milliseconds':
+                        LOG.error('Set NONCE to `seconds` and try again')
+                    elif self.nonce == 'seconds':
+                        LOG.error('Set NONCE to `milliseconds` and try again')
+                else:
+                    LOG.warning('{} {} The exception: {}'.format(
+                        "Check your API_KEY/API_SECRET/API_UID.",
+                        "Disabling the credentials.",
+                        str(error)
+                    ))
+                    self.has_api_credentials = False
             except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-                LOG.exception('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
+                LOG.warning('Rate limit has been reached. Sleeping for 10s. The exception: {}'.format(error))
                 time.sleep(10)
 
             if accounts.get('total'):
@@ -167,7 +175,7 @@ class CryptoCollector():
                 labels=['source_currency', 'currency', 'account', 'type']
             ),
         }
-        self.get_tickers()
+        # self.get_tickers()
         for rate in self.rates:
             metrics['exchange_rate'].add_metric(
                 value=self.rates[rate]['value'],
