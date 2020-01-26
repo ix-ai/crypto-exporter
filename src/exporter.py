@@ -65,6 +65,9 @@ class CryptoCollector():
         if os.environ.get("API_UID"):
             self.selected_exchange.uid = os.environ.get("API_UID")
 
+        if os.environ.get("API_PASS"):
+            self.selected_exchange.password = os.environ.get("API_PASS")
+
     def get_tickers(self):
         """ Connects to the exchange and downloads the price tickers """
 

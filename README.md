@@ -85,15 +85,16 @@ scrape_configs:
 
 Make sure that your prometheus server is able to reach the network set for the crypto-exporter.
 
-**Warning**: some exchanges (notably: gdax/coinbasepro) need more than 30s to scrape
+**Warning**: some exchanges (notably: coinbasepro) need more than 30s to scrape
 
 ### Supported variables
 | **Variable**  | **Default** | **Mandatory** | **Description**                                                                                                        |
 |:--------------|:-----------:|:-------------:|:-----------------------------------------------------------------------------------------------------------------------|
 | `EXCHANGE`    | -           | **YES**       | see below                                                                                                              |
-| `API_KEY`     | -           | NO            | set this to your Exchange API key                                                                                      |
-| `API_SECRET`  | -           | NO            | set this to your Exchange API secret                                                                                   |
-| `API_SECRET`  | -           | NO            | only needed for certain exchanges (like `cex`)                                                                         |
+| `API_KEY`     | -           | NO            | set this to your Exchange API key |
+| `API_SECRET`  | -           | NO            | set this to your Exchange API secret |
+| `API_PASS`    | -           | NO            | only needed for certain exchanges (like `coinbasepro`) |
+| `API_UID`     | -           | NO            | only needed for certain exchanges (like `cex`)                                                                         |
 | `LOGLEVEL`    | `INFO`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels)                                                 |
 | `GELF_HOST`   | -           | NO            | if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
 | `GELF_PORT`   | `12201`     | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging                                                        |
@@ -108,7 +109,7 @@ Make sure that your prometheus server is able to reach the network set for the c
 * cex
 * hitbtc
 * liquid
-* gdax
+* coinbasepro
 
 All other exchanges supported by [ccxt](https://github.com/ccxt/ccxt) should be supported, however they are untested.
 
