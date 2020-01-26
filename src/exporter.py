@@ -51,12 +51,13 @@ class CryptoCollector():
     def __init__(self):
         if not os.environ.get('EXCHANGE'):
             raise ValueError("Missing EXCHANGE environment variable. See README.md.")
+        nonce = os.environ.get('NONCE', 'milliseconds')
 
         self.exchange = os.environ.get('EXCHANGE')
         LOG.info('Configured exchange: {}'.format(self.exchange))
 
         selected_exchange = getattr(ccxt, self.exchange)
-        self.selected_exchange = selected_exchange({'nonce': selected_exchange.milliseconds})
+        self.selected_exchange = selected_exchange({'nonce': getattr(selected_exchange, nonce)})
         if os.environ.get("API_KEY") and os.environ.get("API_SECRET"):
             self.selected_exchange.apiKey = os.environ.get("API_KEY")
             self.selected_exchange.secret = os.environ.get("API_SECRET")

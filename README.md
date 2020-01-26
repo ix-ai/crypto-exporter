@@ -88,17 +88,18 @@ Make sure that your prometheus server is able to reach the network set for the c
 **Warning**: some exchanges (notably: coinbasepro) need more than 30s to scrape
 
 ### Supported variables
-| **Variable**  | **Default** | **Mandatory** | **Description**                                                                                                        |
-|:--------------|:-----------:|:-------------:|:-----------------------------------------------------------------------------------------------------------------------|
-| `EXCHANGE`    | -           | **YES**       | see below                                                                                                              |
-| `API_KEY`     | -           | NO            | set this to your Exchange API key |
-| `API_SECRET`  | -           | NO            | set this to your Exchange API secret |
-| `API_PASS`    | -           | NO            | only needed for certain exchanges (like `coinbasepro`) |
-| `API_UID`     | -           | NO            | only needed for certain exchanges (like `cex`)                                                                         |
-| `LOGLEVEL`    | `INFO`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels)                                                 |
-| `GELF_HOST`   | -           | NO            | if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
-| `GELF_PORT`   | `12201`     | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging                                                        |
-| `PORT`        | `9188`      | NO            | The port for prometheus metrics                                                                                        |
+| **Variable**  | **Default**    | **Mandatory** | **Description**  |
+|:--------------|:--------------:|:-------------:|:-----------------|
+| `EXCHANGE`    | -              | **YES**       | see below        |
+| `API_KEY`     | -              | NO            | set this to your Exchange API key |
+| `API_SECRET`  | -              | NO            | set this to your Exchange API secret |
+| `API_PASS`    | -              | NO            | only needed for certain exchanges (like `coinbasepro`) |
+| `API_UID`     | -              | NO            | only needed for certain exchanges (like `cex`) |
+| `NONCE`       | `milliseconds` | NO            | some exchanges (looking at you, `coinbasepro`) don't support nonce in milliseconds, but want seconds |
+| `LOGLEVEL`    | `INFO`         | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
+| `GELF_HOST`   | -              | NO            | if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
+| `GELF_PORT`   | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
+| `PORT`        | `9188`         | NO            | The port for prometheus metrics |
 
 ### Supported (tested) exchanges
 * poloniex
