@@ -175,7 +175,7 @@ class CryptoCollector():
                 labels=['source_currency', 'currency', 'account', 'type']
             ),
         }
-        # self.get_tickers()
+        self.get_tickers()
         for rate in self.rates:
             metrics['exchange_rate'].add_metric(
                 value=self.rates[rate]['value'],
