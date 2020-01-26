@@ -19,6 +19,8 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+FILENAME = os.path.splitext(sys.modules['__main__'].__file__)[0]
+
 
 def configure_logging():
     """ Configures the logging """
@@ -31,7 +33,7 @@ def configure_logging():
             debug=True,
             include_extra_fields=True,
             _exchange=os.environ.get('EXCHANGE', 'unconfigured'),
-            _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0][1:]),
+            _ix_id=os.environ.get('EXCHANGE', FILENAME),
         )
         LOG.addHandler(GELF)
         gelf_enabled = True
@@ -199,7 +201,7 @@ if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 9188))
     VERSION = None
     # pylint: disable=no-member
-    LOG.info("Starting crypto-exporter {} on port {}".format(constants.VERSION, PORT))
+    LOG.info("Starting {} {} on port {}".format(FILENAME, constants.VERSION, PORT))
     REGISTRY.register(CryptoCollector())
     start_http_server(PORT)
     while True:

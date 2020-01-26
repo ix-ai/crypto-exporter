@@ -1,5 +1,6 @@
 FROM alpine:latest
-LABEL maintainer="docker@ix.ai"
+LABEL maintainer="docker@ix.ai" \
+      ai.ix.repository="ix.ai/crypto-exporter"
 
 WORKDIR /app
 
