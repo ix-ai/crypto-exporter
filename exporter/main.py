@@ -55,7 +55,7 @@ def main():
         options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
         log.LOG.info('Configured REFERENCE_CURRENCIES: {}'.format(options['reference_currencies']))
 
-    exchange = Exchange(options)
+    exchange = Exchange(**options)
 
     collector = CryptoCollector(exchange=exchange)
 
