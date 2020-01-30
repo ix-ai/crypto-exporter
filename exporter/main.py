@@ -16,7 +16,7 @@ def main():
     """ The main function """
     # log.configure_logging()
     PORT = int(os.environ.get('PORT', 9188))
-    log.LOG.info("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, PORT))
+    log.LOG.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, PORT))
 
     options = {}
 
@@ -42,14 +42,9 @@ def main():
         log.LOG.info('Configured API_PASS')
 
     options['enable_tickers'] = False
-    if os.environ.get('ENABLE_TICKERS', 'true') == 'true':
+    if os.environ.get('ENABLE_TICKERS', 'true').lower() == 'true':
         options['enable_tickers'] = True
     log.LOG.info('Configured ENABLE_TICKERS: {}'.format(options['enable_tickers']))
-
-    options['enable_transactions'] = True
-    if os.environ.get('ENABLE_TRANSACTIONS', 'false') == 'false':
-        options['enable_transactions'] = False
-    log.LOG.info('Configured ENABLE_TRANSACTIONS: {}'.format(options['enable_transactions']))
 
     if os.environ.get("SYMBOLS"):
         options['symbols'] = os.environ.get("SYMBOLS")
@@ -57,9 +52,6 @@ def main():
     if os.environ.get("REFERENCE_CURRENCIES"):
         options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
         log.LOG.info('Configured REFERENCE_CURRENCIES: {}'.format(options['reference_currencies']))
-    if os.environ.get("TRANSACTION_CURRENCIES"):
-        options['transaction_currencies'] = os.environ.get("TRANSACTION_CURRENCIES")
-        log.LOG.info('Configured TRANSACTION_CURRENCIES: {}'.format(options['transaction_currencies']))
 
     exchange = Exchange(**options)
 
