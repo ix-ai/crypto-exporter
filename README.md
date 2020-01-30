@@ -88,38 +88,60 @@ Make sure that your prometheus server is able to reach the network set for the c
 **Warning**: some exchanges (notably: coinbasepro) need more than 30s to scrape
 
 ### Supported variables
-| **Variable**  | **Default**    | **Mandatory** | **Description**  |
-|:--------------|:--------------:|:-------------:|:-----------------|
-| `EXCHANGE`    | -              | **YES**       | see below        |
-| `API_KEY`     | -              | NO            | set this to your Exchange API key |
-| `API_SECRET`  | -              | NO            | set this to your Exchange API secret |
-| `API_PASS`    | -              | NO            | only needed for certain exchanges (like `coinbasepro`) |
-| `API_UID`     | -              | NO            | only needed for certain exchanges (like `cex`) |
-| `NONCE`       | `milliseconds` | NO            | some exchanges (looking at you, `coinbasepro`) don't support nonce in milliseconds, but want seconds |
-| `LOGLEVEL`    | `INFO`         | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
-| `GELF_HOST`   | -              | NO            | if set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
-| `GELF_PORT`   | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
-| `PORT`        | `9188`         | NO            | The port for prometheus metrics |
+| **Variable**             | **Default**    | **Mandatory** | **Description**  |
+|:-------------------------|:--------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -              | **YES**       | See below [Tested exchanges](#tested-exchanges) |
+| `API_KEY`                | -              | NO            | Set this to your Exchange API key |
+| `API_SECRET`             | -              | NO            | Set this to your Exchange API secret |
+| `API_PASS`               | -              | NO            | Only needed for certain exchanges (like `coinbasepro`) |
+| `API_UID`                | -              | NO            | Only needed for certain exchanges (like `cex`) |
+| `NONCE`                  | `milliseconds` | NO            | Some exchanges (looking at you, `coinbasepro`) don't support nonce in milliseconds, but want seconds |
+| `ENABLE_TICKERS`         | `true`         | NO            | Set this to anything else in order to disable retrieving the ticker rates |
+| `SYMBOLS`                | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
+| `REFERENCE_CURRENCIES`   | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
+| `ENABLE_TRANSACTIONS`    | `false`        | NO            | Set this to `true` in order to enable retrieving the transaction history (see below: [Transaction history](#transaction-history)) |
+| `TRANSACTION_CURRENCIES` | -              | NO            | Set this to `true` in order to enable retrieving the transaction history (see below: [Transaction history](#transaction-history)) |
+| `LOGLEVEL`               | `WARNING`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
+| `GELF_HOST`              | -              | NO            | If set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
+| `GELF_PORT`              | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
+| `PORT`                   | `9188`         | NO            | The port for prometheus metrics |
 
-### Supported (tested) exchanges
-* poloniex
+### SYMBOLS and REFERENCE_CURRENCIES
+
+Since not all exchanges support getting the ticker with one request (`coinbase`, `coinbasepro`, `bitstamp`), crypto-exporter has to request for every traded pair the exchange rate. This takes a lot of time, especially if there are a lot of pairs traded (>50 minutes for one run with coinbase).
+
+If you're only interested in a subset of those trade pairs, you can:
+
+* set `REFERENCE_CURRENCIES` to a comma separated list of currencies, for which to retrieve all exchange rates (for example: `EUR,USD`)
+* set `SYMBOLS` to a comma separated list of pairs (for example: `BTC/EUR,BTC/USD,ETH/EUR,ETH/USD`) and all the other pairs will be ignored
+
+The two variables are *cumulative*. If you set both, for example `REFERENCE_CURRENCIES=EUR` and `SYMBOLS=BTC/USDT`, you will get the results for all trading pairs for EUR and BTC/USDT.
+
+### Transaction history
+
+Some exchanges are really slow when it comes to transaction history (Poloniex, for example). The variable `ENABLE_TRANSACTIONS` allows you to still be able to get the account metrics, while not retrieving the transactions. You can also set `TRANSACTION_CURRENCIES` to a comma separated list of currencies for which to retrieve the transactions.
+
+### Tested exchanges
+* coinbase
+* coinbasepro
 * kraken
 * binance
-* bitfinex
-* bitstamp
-* cex
-* hitbtc
 * liquid
-* coinbasepro
+* poloniex
+* bitfinex
+* cex
 
-All other exchanges supported by [ccxt](https://github.com/ccxt/ccxt) should be supported, however they are untested.
+Limited tests (without API credentials) have been done with:
+* bitstamp
+* hitbtc
+
+All other exchanges supported by [ccxt](https://github.com/ccxt/ccxt) should be work as well, however they are untested.
 
 ## Tags and Arch
 
 Starting with version v0.5.1, the images are multi-arch, with builds for amd64, arm64, armv7 and armv6.
 * `vN.N.N` - for example v0.5.0
 * `latest` - always pointing to the latest version
-* `dev-branch` - the last build on a feature/development branch
 * `dev-master` - the last build on the master branch
 
 ## Resources:
