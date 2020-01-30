@@ -99,8 +99,6 @@ Make sure that your prometheus server is able to reach the network set for the c
 | `ENABLE_TICKERS`         | `true`         | NO            | Set this to anything else in order to disable retrieving the ticker rates |
 | `SYMBOLS`                | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
 | `REFERENCE_CURRENCIES`   | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
-| `ENABLE_TRANSACTIONS`    | `false`        | NO            | Set this to `true` in order to enable retrieving the transaction history (see below: [Transaction history](#transaction-history)) |
-| `TRANSACTION_CURRENCIES` | -              | NO            | Set this to `true` in order to enable retrieving the transaction history (see below: [Transaction history](#transaction-history)) |
 | `LOGLEVEL`               | `WARNING`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
 | `GELF_HOST`              | -              | NO            | If set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
 | `GELF_PORT`              | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
@@ -116,10 +114,6 @@ If you're only interested in a subset of those trade pairs, you can:
 * set `SYMBOLS` to a comma separated list of pairs (for example: `BTC/EUR,BTC/USD,ETH/EUR,ETH/USD`) and all the other pairs will be ignored
 
 The two variables are *cumulative*. If you set both, for example `REFERENCE_CURRENCIES=EUR` and `SYMBOLS=BTC/USDT`, you will get the results for all trading pairs for EUR and BTC/USDT.
-
-### Transaction history
-
-Some exchanges are really slow when it comes to transaction history (Poloniex, for example). The variable `ENABLE_TRANSACTIONS` allows you to still be able to get the account metrics, while not retrieving the transactions. You can also set `TRANSACTION_CURRENCIES` to a comma separated list of currencies for which to retrieve the transactions.
 
 ### Tested exchanges
 * coinbase
