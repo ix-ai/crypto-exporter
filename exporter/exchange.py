@@ -136,7 +136,7 @@ class Exchange():
                 retrieve_ticker = True
             if self.settings['reference_currencies']:
                 for currency in self.settings['reference_currencies']:
-                    if '/{}'.format(currency) in symbol:
+                    if currency == symbol.split('/')[1]:
                         retrieve_ticker = True
 
             if retrieve_ticker:
