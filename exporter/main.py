@@ -9,9 +9,7 @@ from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
 from .exchange import Exchange
 from .lib import constants
-from .lib.log import ExporterLogging
-
-log = ExporterLogging()
+from .lib.log import ExporterLogging as log
 
 
 def main():
@@ -48,12 +46,20 @@ def main():
         options['enable_tickers'] = True
     log.LOG.info('Configured ENABLE_TICKERS: {}'.format(options['enable_tickers']))
 
+    options['enable_transactions'] = True
+    if os.environ.get('ENABLE_TRANSACTIONS', 'false') == 'false':
+        options['enable_transactions'] = False
+    log.LOG.info('Configured ENABLE_TRANSACTIONS: {}'.format(options['enable_transactions']))
+
     if os.environ.get("SYMBOLS"):
         options['symbols'] = os.environ.get("SYMBOLS")
         log.LOG.info('Configured SYMBOLS: {}'.format(options['symbols']))
     if os.environ.get("REFERENCE_CURRENCIES"):
         options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
         log.LOG.info('Configured REFERENCE_CURRENCIES: {}'.format(options['reference_currencies']))
+    if os.environ.get("TRANSACTION_CURRENCIES"):
+        options['transaction_currencies'] = os.environ.get("TRANSACTION_CURRENCIES")
+        log.LOG.info('Configured TRANSACTION_CURRENCIES: {}'.format(options['transaction_currencies']))
 
     exchange = Exchange(**options)
 
