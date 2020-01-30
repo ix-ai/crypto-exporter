@@ -35,7 +35,7 @@ def main():
         options['api_secret'] = os.environ.get('API_SECRET')
         log.LOG.info('Configured API_SECRET')
     if os.environ.get("API_UID"):
-        options['api_key'] = os.environ.get('API_UID')
+        options['api_uid'] = os.environ.get('API_UID')
         log.LOG.info('Configured API_UID')
     if os.environ.get("API_PASS"):
         options['api_secret'] = os.environ.get('API_PASS')
