@@ -14,10 +14,10 @@ class Exchange():
     settings = {}
     __settings = {}
 
-    def __init__(self, options):
+    def __init__(self, **kwargs):
         # Mandatory attributes
-        self.exchange = options['exchange']
-        self.settings['nonce'] = options.get('nonce', 'milliseconds')
+        self.exchange = kwargs['exchange']
+        self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
         __exchange = getattr(ccxt, self.exchange)
         self.__exchange = __exchange({
             'nonce': getattr(__exchange, self.settings['nonce']),
@@ -25,11 +25,11 @@ class Exchange():
         })
 
         # Settable defaults
-        self.settings['enable_tickers'] = options.get('enable_tickers', True)
-        self.settings['enable_transactions'] = options.get('enable_transactions', False)
-        self.settings['symbols'] = options.get('symbols')
-        self.settings['reference_currencies'] = options.get('reference_currencies')
-        self.settings['transaction_currencies'] = options.get('transaction_currencies')
+        self.settings['enable_tickers'] = kwargs.get('enable_tickers', True)
+        self.settings['enable_transactions'] = kwargs.get('enable_transactions', False)
+        self.settings['symbols'] = kwargs.get('symbols')
+        self.settings['reference_currencies'] = kwargs.get('reference_currencies')
+        self.settings['transaction_currencies'] = kwargs.get('transaction_currencies')
 
         # Convert the strings to lists
         if self.settings['symbols']:
@@ -40,10 +40,10 @@ class Exchange():
             self.settings['transaction_currencies'] = self.settings['transaction_currencies'].split(',')
 
         # Authentication data
-        self.__settings['api_key'] = options.get('api_key')
-        self.__settings['api_secret'] = options.get('api_secret')
-        self.__settings['api_pass'] = options.get('api_pass')
-        self.__settings['api_uid'] = options.get('api_uid')
+        self.__settings['api_key'] = kwargs.get('api_key')
+        self.__settings['api_secret'] = kwargs.get('api_secret')
+        self.__settings['api_pass'] = kwargs.get('api_pass')
+        self.__settings['api_uid'] = kwargs.get('api_uid')
 
         # Exporter Data
         self.__settings['accounts'] = {}
