@@ -337,7 +337,7 @@ class Exchange():
         processed_transactions = {
             'amount': float(0),
             'currency': None,
-            'referece_currency': None,
+            'reference_currency': None,
         }
         results = {}
         for transaction in transactions:
@@ -354,7 +354,7 @@ class Exchange():
         processed_trades = {
             'amount': float(0),
             'currency': None,
-            'referece_currency': None,
+            'reference_currency': None,
         }
         results = {}
         for trade in trades:

@@ -18,7 +18,7 @@ class CryptoCollector():
             'exchange_rate': GaugeMetricFamily(
                 'exchange_rate',
                 'Current exchange rates',
-                labels=['currency', 'referece_currency', 'exchange']
+                labels=['currency', 'reference_currency', 'exchange']
             ),
             'account_balance': GaugeMetricFamily(
                 'account_balance',
