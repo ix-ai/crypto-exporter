@@ -7,7 +7,7 @@ import time
 log = logging.getLogger(__name__)
 
 
-def DDoSProtectionHandler(error, sleep=1):
+def DDoSProtectionHandler(error, sleep=15):
     """ Prints a warning and sleeps """
     log.warning('Rate limit has been reached. Sleeping for {}s. The exception: {}'.format(sleep, error))
     time.sleep(sleep)  # don't hit the rate limit
