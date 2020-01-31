@@ -3,11 +3,54 @@
 """ Handles the exchange data and communication """
 
 import logging
+import inspect
+import time
 import ccxt
 from .lib import constants
-from .lib import handlers
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('crypto-exporter')
+
+
+def DDoSProtectionHandler(error, sleep=15):
+    """ Prints a warning and sleeps """
+    log.warning(
+        '({}) Rate limit has been reached.'.format(inspect.stack()[1].function),
+        'Sleeping for {}s. The exception: {}'.format(sleep, error),
+    )
+    time.sleep(sleep)  # don't hit the rate limit
+
+
+def ExchangeNotAvailableHandler(error, sleep=10):
+    """ Prints an error and sleeps """
+    log.error(
+        '({}) The exchange API could not be reached.'.format(inspect.stack()[1].function),
+        'Sleeping for {}. The error: {}'.format(sleep, error),
+    )
+    time.sleep(sleep)  # don't hit the rate limit
+
+
+def AuthenticationErrorHandler(error, nonce=''):
+    """ Logs hints about the authentication error """
+    message = "({}) Can't authenticate to read the accounts.".format(inspect.stack()[1].function)
+    if 'request timestamp expired' in str(error):
+        if nonce == 'milliseconds':
+            message += ' Set NONCE to `seconds` and try again.'
+        elif nonce == 'seconds':
+            message += ' Set NONCE to `milliseconds` and try again.'
+    else:
+        message += '{} The exception: {}'.format(
+            " Check your API_KEY/API_SECRET/API_UID. Disabling the credentials.",
+            str(error)
+        )
+    log.error(message)
+
+
+def PermissionDeniedHandler(error):
+    """ Prints error and gives hints about the cause """
+    log.error(
+        '({}) The exchange reports "permission denied": {}'.format(inspect.stack()[1].function, error),
+        'Check the API token permissions',
+    )
 
 
 class Exchange():
@@ -19,6 +62,7 @@ class Exchange():
     def __init__(self, **kwargs):
         # Mandatory attributes
         log.info('Initializing exchange...')
+
         self.exchange = kwargs['exchange']
         self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
         __exchange = getattr(ccxt, self.exchange)
@@ -100,11 +144,11 @@ class Exchange():
                 tickers = self.__exchange.fetch_tickers()
                 tickers_loaded = True
             except ccxt.DDoSProtection as error:
-                handlers.DDoSProtectionHandler(error=error)
+                DDoSProtectionHandler(error=error)
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                handlers.ExchangeNotAvailableHandler(error=error)
+                ExchangeNotAvailableHandler(error=error)
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                handlers.PermissionDeniedHandler(error=error)
+                PermissionDeniedHandler(error=error)
         return tickers
 
     def __fetch_each_ticker(self, symbols):
@@ -138,9 +182,9 @@ class Exchange():
                 ticker = {symbol: {'last': self.__exchange.fetch_ticker(symbol)['last']}}
                 tickers_loaded = True
             except ccxt.DDoSProtection as error:
-                handlers.DDoSProtectionHandler(error=error)
+                DDoSProtectionHandler(error=error)
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                handlers.ExchangeNotAvailableHandler(error=error)
+                ExchangeNotAvailableHandler(error=error)
         if ticker:
             return ticker
 
@@ -153,11 +197,11 @@ class Exchange():
                     self.__markets = self.__exchange.fetch_markets()
                     markets_fetched = True
                 except ccxt.DDoSProtection as error:
-                    handlers.DDoSProtectionHandler(error=error, sleep=15)
+                    DDoSProtectionHandler(error=error, sleep=15)
                 except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                    handlers.ExchangeNotAvailableHandler(error=error)
+                    ExchangeNotAvailableHandler(error=error)
                 except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                    handlers.PermissionDeniedHandler(error=error)
+                    PermissionDeniedHandler(error=error)
                 log.debug('Found these markets: {}'.format(self.__exchange.markets))
         markets = self.__markets
         return markets
@@ -193,14 +237,14 @@ class Exchange():
             accounts = self.__exchange.fetch_balance()
             self.__settings['accounts'] = {}
         except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-            handlers.ExchangeNotAvailableHandler(error=error)
+            ExchangeNotAvailableHandler(error=error)
         except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-            handlers.AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
+            AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
             self.__settings['enable_authentication'] = False
         except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-            handlers.DDoSProtectionHandler(error=error)
+            DDoSProtectionHandler(error=error)
         except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-            handlers.PermissionDeniedHandler(error=error)
+            PermissionDeniedHandler(error=error)
 
         if accounts.get('total'):
             for currency in accounts['total']:

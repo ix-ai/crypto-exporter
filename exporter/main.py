@@ -2,45 +2,30 @@
 # -*- coding: utf-8 -*-
 """ Prometheus Exporter for Crypto Exchanges """
 
-import logging
 import time
 import os
 import sys
-import pygelf
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
 from .exchange import Exchange
 from .lib import constants
+from .lib import log as logging
 
-logging.basicConfig(
-    stream=sys.stdout,
-    level=os.environ.get("LOGLEVEL", "WARNING"),
-    format='%(asctime)s.%(msecs)03d %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+log = logging.setup_logger(
+    name='crypto-exporter',
+    level=os.environ.get('LOGLEVEL', 'INFO'),
+    gelf_host=os.environ.get('GELF_HOST'),
+    gelf_port=int(os.environ.get('GELF_PORT', 12201)),
+    _exchange=os.environ.get('EXCHANGE', 'unconfigured'),
+    _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0]),
 )
-log = logging.getLogger(__name__)
 
 
 def main():
     """ The main function """
-
-    GELF_ENABLED = False
-    if os.environ.get('GELF_HOST') and not GELF_ENABLED:
-        GELF = pygelf.GelfUdpHandler(
-            host=os.environ.get('GELF_HOST'),
-            port=int(os.environ.get('GELF_PORT', 12201)),
-            debug=True,
-            include_extra_fields=True,
-            _exchange=os.environ.get('EXCHANGE', 'unconfigured'),
-            _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0]),
-        )
-        log.addHandler(GELF)
-        GELF_ENABLED = True
-        log.info('GELF logging enabled')
-
-    PORT = int(os.environ.get('PORT', 9188))
-    log.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, PORT))
+    port = int(os.environ.get('PORT', 9188))
+    log.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, port))
 
     options = {}
 
@@ -48,9 +33,6 @@ def main():
     if not options['exchange']:
         raise ValueError("Missing EXCHANGE environment variable. See README.md.")
     log.info('Configured EXCHANGE: {}'.format(options['exchange']))
-
-    options['nonce'] = os.environ.get('NONCE', 'milliseconds')
-    log.info('Configured NONCE: {}'.format(options['nonce']))
 
     if os.environ.get("API_KEY"):
         options['api_key'] = os.environ.get('API_KEY')
@@ -77,13 +59,21 @@ def main():
         options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
         log.info('Configured REFERENCE_CURRENCIES: {}'.format(options['reference_currencies']))
 
+    options['nonce'] = os.environ.get('NONCE', 'milliseconds')
+    log.info('Configured NONCE: {}'.format(options['nonce']))
+
+    log.info('Configured LOGLEVEL: {}'.format(os.environ.get('LOGLEVEL', 'INFO')))
+    if os.environ.get('GELF_HOST'):
+        log.info('Configured GELF_HOST: {}'.format(os.environ.get('GELF_HOST')))
+        log.info('Configured GELF_PORT: {}'.format(int(os.environ.get('GELF_PORT', 12201))))
+
     exchange = Exchange(**options)
 
     collector = CryptoCollector(exchange=exchange)
 
     REGISTRY.register(collector)
 
-    start_http_server(PORT)
+    start_http_server(port)
     while True:
         time.sleep(1)
 
