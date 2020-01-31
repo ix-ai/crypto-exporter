@@ -7,85 +7,62 @@
 
 Prometheus exporter, written in python, for different crypto exchanges
 
+**Warning**: This documentation applies for version `v1.x.x`.
+
+## Features
+
+The crypto-exporter generates two sets of metrics:
+
+### exchange_rate
+The exchange rates for the symbols traded. Use this to get the tickers.
+
+Example:
+```prom
+# HELP exchange_rate Current exchange rates
+# TYPE exchange_rate gauge
+exchange_rate{currency="BTC",exchange="bitfinex",reference_currency="USD"} 9311.2
+exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="USD"} 67.781
+exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="BTC"} 0.0072618
+exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="USD"} 179.50461962
+exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="BTC"} 0.019279
+exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="BTC"} 0.0011989
+exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="USD"} 11.155
+exchange_rate{currency="RRT",exchange="bitfinex",reference_currency="USD"} 0.0233
+exchange_rate{currency="RRT",exchange="bitfinex",reference_currency="BTC"} 2.59e-06
+exchange_rate{currency="ZEC",exchange="bitfinex",reference_currency="USD"} 65.226
+exchange_rate{currency="ZEC",exchange="bitfinex",reference_currency="BTC"} 0.0069783
+exchange_rate{currency="XMR",exchange="bitfinex",reference_currency="USD"} 70.42
+```
+
+### Account balance
+**Warning**: To see the account balance, authentication is mandatory.
+
+Example:
+```prom
+# HELP account_balance Account Balance
+# TYPE account_balance gauge
+account_balance{account="total",currency="XRP",exchange="kraken"} 279.39357642
+account_balance{account="total",currency="XLM",exchange="kraken"} 14.0003552
+account_balance{account="total",currency="ETH",exchange="kraken"} 9.29332537
+```
+
 ## Usage
 ```sh
 docker run --rm -it -p 9999:9999 \
-  -e EXCHANGE="poloniex" \
-  -e LOGLEVEL=DEBUG \
+  -e EXCHANGE="coinbasepro" \
+  -e NONCE="seconds" \
   -e API_KEY="your_api_key" \
   -e API_SECRET="your_api_secret" \
-  -e PORT=9999
+  -e API_PASS="your_api_password" \
+  -e REFERENCE_CURRENCIES="USD,EUR" \
+  -e SYMBOLS="LTC/BTC,ETH/BTC" \
   -e GELF_HOST="graylog" \
-  --name poloniex-exporter
-  registry.gitlab.com/ix.ai/crypto-exporter:latest
-```
-Or use the image from `ixdotai/crypto-exporter`
-```sh
-docker run --rm -it -p 9999:9999 \
-  -e EXCHANGE="poloniex" \
+  -e GELF_PORT="2201" \
   -e LOGLEVEL=DEBUG \
-  -e API_KEY="your_api_key" \
-  -e API_SECRET="your_api_secret" \
-  -e PORT=9999
-  -e GELF_HOST="graylog" \
-  --name poloniex-exporter
+  -e PORT=9999 \
+  --name coinbasepro-exporter \
   ixdotai/crypto-exporter:latest
 ```
-
-## Docker Stack example
-```yml
-version: '3.7'
-
-services:
-  binance:
-    image: ixdotai/crypto-exporter:latest
-    networks:
-      - exporters
-      - graylog
-    environment:
-      EXCHANGE: binance
-      GELF_HOST: tasks.graylog_graylog
-      GELF_PORT: 12201
-      API_KEY: your_api_key
-      API_SECRET: your_api_secret
-  bitfinex:
-    image: registry.gitlab.com/ix.ai/crypto-exporter:latest
-    networks:
-      - exporters
-      - graylog
-    environment:
-      EXCHANGE: bitfinex
-      GELF_HOST: tasks.graylog_graylog
-      GELF_PORT: 12201
-      API_KEY: your_api_key
-      API_SECRET: your_api_secret
-
-networks:
-  exporters:
-    external: true
-  graylog:
-    external: true
-
-```
-
-### Prometheus configuration with DNS service discovery
-```yml
-scrape_configs:
-- job_name: 'crypto-exporters'
-  honor_timestamps: true
-  scrape_interval: 30s
-  scrape_timeout: 30s
-  metrics_path: /metrics
-  scheme: http
-  dns_sd_configs:
-  - names:
-    - tasks.binance
-    - tasks.bitfinex
-```
-
-Make sure that your prometheus server is able to reach the network set for the crypto-exporter.
-
-**Warning**: some exchanges (notably: coinbasepro) need more than 30s to scrape
 
 ### Supported variables
 | **Variable**             | **Default**    | **Mandatory** | **Description**  |
@@ -99,7 +76,7 @@ Make sure that your prometheus server is able to reach the network set for the c
 | `ENABLE_TICKERS`         | `true`         | NO            | Set this to anything else in order to disable retrieving the ticker rates |
 | `SYMBOLS`                | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
 | `REFERENCE_CURRENCIES`   | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
-| `LOGLEVEL`               | `WARNING`      | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
+| `LOGLEVEL`               | `INFO`         | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
 | `GELF_HOST`              | -              | NO            | If set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
 | `GELF_PORT`              | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
 | `PORT`                   | `9188`         | NO            | The port for prometheus metrics |
@@ -130,6 +107,70 @@ Limited tests (without API credentials) have been done with:
 * hitbtc
 
 All other exchanges supported by [ccxt](https://github.com/ccxt/ccxt) should be work as well, however they are untested.
+
+## docker-compose or stack example
+```yml
+version: '3.7'
+
+services:
+  binance:
+    image: ixdotai/crypto-exporter:latest
+    networks:
+      - exporters
+    environment:
+      EXCHANGE: binance
+      API_KEY: your_api_key
+      API_SECRET: your_api_secret
+      LOGLEVEL: DEBUG
+  bitfinex:
+    image: registry.gitlab.com/ix.ai/crypto-exporter:latest
+    networks:
+      - exporters
+    environment:
+      EXCHANGE: bitfinex
+      API_KEY: your_api_key
+      API_SECRET: your_api_secret
+      LOGLEVEL: WARNING
+  coinbasepro:
+    image: ixdotai/crypto-exporter:v1.0.0
+    networks:
+      - exporters
+    environment:
+      EXCHANGE: coinbasepro
+      REFERENCE_CURRENCIES: USD,EUR,BTC
+      SYMBOLS: LTC/BTC,ETH/BTC
+      NONCE: seconds
+networks:
+  exporters: {}
+```
+
+Prometheus configuration with DNS service discovery:
+
+```yml
+scrape_configs:
+- job_name: 'crypto-exporters'
+  scrape_interval: 60s
+  scrape_timeout: 60s
+  metrics_path: /
+  scheme: http
+  dns_sd_configs:
+  - port: 9188
+  - names:
+    - tasks.binance
+    - tasks.bitfinex
+- job_name: 'coinbasepro-exporter'
+  scrape_interval: 120s
+  scrape_timeout: 120s
+  metrics_path: /
+  dns_sd_configs:
+  - port: 9188
+  - names:
+    - tasks.coinbasepro
+```
+
+Make sure that your prometheus server is able to reach the network set for the crypto-exporter.
+
+**Warning**: Some exchanges (notably: coinbasepro) need more than 60s to scrape, especially if you don't configure `REFERENCE_CURRENCIES` or `SYMBOLS`.
 
 ## Tags and Arch
 

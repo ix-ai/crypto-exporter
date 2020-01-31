@@ -202,7 +202,7 @@ class Exchange():
                     ExchangeNotAvailableHandler(error=error)
                 except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
                     PermissionDeniedHandler(error=error)
-                log.debug('Found these markets: {}'.format(self.__exchange.markets))
+                log.debug('Found these markets: {}'.format(self.__markets))
         markets = self.__markets
         return markets
 
@@ -214,12 +214,9 @@ class Exchange():
         tickers = {}
         if self.__exchange.has['fetchTickers']:
             tickers = self.__fetch_tickers()
-        elif self.__exchange.has['fetchCurrencies']:
-            log.warning(constants.WARN_TICKER_SLOW_LOAD)
-            tickers = self.__fetch_each_ticker(self.__exchange.symbols)
         else:
             log.warning(constants.WARN_TICKER_SLOW_LOAD)
-            tickers = self.__fetch_each_ticker(self.__fetch_markets())
+            tickers = self.__fetch_each_ticker(self.__markets)
 
         self.__process_tickers(tickers)
 
