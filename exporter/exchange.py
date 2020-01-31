@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 """ Handles the exchange data and communication """
 
+import logging
 import ccxt
 from .lib import constants
 from .lib import handlers
-from .lib.log import ExporterLogging as log
+
+log = logging.getLogger(__name__)
 
 
 class Exchange():
@@ -16,6 +18,7 @@ class Exchange():
 
     def __init__(self, **kwargs):
         # Mandatory attributes
+        log.info('Initializing exchange...')
         self.exchange = kwargs['exchange']
         self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
         __exchange = getattr(ccxt, self.exchange)
@@ -26,18 +29,14 @@ class Exchange():
 
         # Settable defaults
         self.settings['enable_tickers'] = kwargs.get('enable_tickers', True)
-        self.settings['enable_transactions'] = kwargs.get('enable_transactions', False)
         self.settings['symbols'] = kwargs.get('symbols')
         self.settings['reference_currencies'] = kwargs.get('reference_currencies')
-        self.settings['transaction_currencies'] = kwargs.get('transaction_currencies')
 
         # Convert the strings to lists
         if self.settings['symbols']:
             self.settings['symbols'] = self.settings['symbols'].split(',')
         if self.settings['reference_currencies']:
             self.settings['reference_currencies'] = self.settings['reference_currencies'].split(',')
-        if self.settings['transaction_currencies']:
-            self.settings['transaction_currencies'] = self.settings['transaction_currencies'].split(',')
 
         # Authentication data
         self.__settings['api_key'] = kwargs.get('api_key')
@@ -49,22 +48,12 @@ class Exchange():
         self.__settings['accounts'] = {}
         self.__settings['currencies'] = {}
         self.__settings['tickers'] = {}
-        self.__settings['transactions'] = {}
 
         # Internal settings and lists
-        log.LOG.info('Loading Markets')
-        markets_loaded = False
-        while markets_loaded is False:
-            try:
-                self.__exchange.loadMarkets(True)
-                markets_loaded = True
-                log.LOG.info('Markets loaded')
-            except ccxt.DDoSProtection as error:
-                handlers.DDoSProtectionHandler(error=error)
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                handlers.ExchangeNotAvailableHandler(error=error)
-        self.__markets = self.__exchange.markets
         self.__settings['enable_authentication'] = None
+        self.__markets = None
+        self.__fetch_markets()
+        log.info('Exchange initialized')
 
     def get_tickers(self):
         """ Returns the stored ticker rates """
@@ -73,10 +62,6 @@ class Exchange():
     def get_accounts(self):
         """ Returns the accounts """
         return self.__settings['accounts']
-
-    def get_transactions(self):
-        """ Returns the transactions """
-        return self.__settings['transactions']
 
     def _prepare_authentication(self):
         """ Checks if API_KEY and API_SECRET are set """
@@ -89,7 +74,7 @@ class Exchange():
                 if self.__settings.get('api_uid'):
                     self.__exchange.uid = self.__settings['api_uid']
                 self.__settings['enable_authentication'] = True
-                log.LOG.debug('Authentication is configured')
+                log.debug('Authentication is configured')
 
     def __process_tickers(self, tickers):
         """ Formats the tickers """
@@ -107,7 +92,7 @@ class Exchange():
                 })
 
     def __fetch_tickers(self):
-        log.LOG.info('Loading Tickers')
+        log.info('Loading tickers')
         tickers = {}
         tickers_loaded = False
         while tickers_loaded is False:
@@ -123,7 +108,8 @@ class Exchange():
         return tickers
 
     def __fetch_each_ticker(self, symbols):
-        log.LOG.info('Loading each ticker rate individually')
+        log.info('Loading each ticker rate individually')
+        log.debug('Loading for these individual entries: {}'.format(symbols))
         tickers = {}
         for symbol in symbols:
             retrieve_ticker = False
@@ -144,7 +130,7 @@ class Exchange():
         return tickers
 
     def __fetch_ticker(self, symbol):
-        log.LOG.info('Loading ticker for symbol {}'.format(symbol))
+        log.info('Loading ticker for symbol {}'.format(symbol))
         ticker = None
         tickers_loaded = False
         while tickers_loaded is False:
@@ -158,40 +144,42 @@ class Exchange():
         if ticker:
             return ticker
 
+    def __fetch_markets(self):
+        log.info('Fetching markets')
+        markets_fetched = False
+        if not self.__markets:
+            while markets_fetched is False:
+                try:
+                    self.__markets = self.__exchange.fetch_markets()
+                    markets_fetched = True
+                except ccxt.DDoSProtection as error:
+                    handlers.DDoSProtectionHandler(error=error, sleep=15)
+                except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
+                    handlers.ExchangeNotAvailableHandler(error=error)
+                except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
+                    handlers.PermissionDeniedHandler(error=error)
+                log.debug('Found these markets: {}'.format(self.__exchange.markets))
+        markets = self.__markets
+        return markets
+
     def retrieve_tickers(self):
         """ Connects to the exchange, downloads the price tickers and saves them in self.__settings['tickers'] """
         if not self.settings.get('enable_tickers'):
             return
-        log.LOG.info('Loading tickers')
+        log.info('Retrieving tickers')
         tickers = {}
         if self.__exchange.has['fetchTickers']:
             tickers = self.__fetch_tickers()
         elif self.__exchange.has['fetchCurrencies']:
-            log.LOG.warning(constants.WARN_TICKER_SLOW_LOAD)
-            log.LOG.debug('Found these symbols: {}'.format(self.__exchange.symbols))
+            log.warning(constants.WARN_TICKER_SLOW_LOAD)
             tickers = self.__fetch_each_ticker(self.__exchange.symbols)
         else:
-            if not self.__markets:
-                log.LOG.warning(constants.WARN_TICKER_SLOW_LOAD)
-                markets_fetched = False
-                log.LOG.info('Fetching markets')
-                while markets_fetched is False:
-                    try:
-                        self.__markets = self.__exchange.fetch_markets()
-                        markets_fetched = True
-                    except ccxt.DDoSProtection as error:
-                        handlers.DDoSProtectionHandler(error=error, sleep=15)
-                    except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                        handlers.ExchangeNotAvailableHandler(error=error)
-                    except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                        handlers.PermissionDeniedHandler(error=error)
-
-            log.LOG.debug('Found these markets: {}'.format(self.__exchange.markets))
-            tickers = self.__fetch_each_ticker(self.__markets)
+            log.warning(constants.WARN_TICKER_SLOW_LOAD)
+            tickers = self.__fetch_each_ticker(self.__fetch_markets())
 
         self.__process_tickers(tickers)
 
-        log.LOG.debug('Found the following ticker rates: {}'.format(self.__settings['tickers']))
+        log.debug('Found the following ticker rates: {}'.format(self.__settings['tickers']))
 
     def retrieve_accounts(self):
         """ Connects to the exchange, downloads the accounts data and saves it in self.__settings['accounts'] """
@@ -199,7 +187,7 @@ class Exchange():
         if not self.__settings['enable_authentication']:
             return
 
-        log.LOG.info('Loading accounts')
+        log.info('Retrieving accounts')
         accounts = {}
         try:
             accounts = self.__exchange.fetch_balance()
@@ -222,193 +210,4 @@ class Exchange():
                     'total': accounts['total'][currency],
                 })
 
-        log.LOG.debug('Found the following accounts: {}'.format(self.__settings['accounts']))
-
-    def __fetch_transactions(self, currency):
-        """ Fetches the transaction data """
-        transactions = []
-        self._prepare_authentication()
-        if not self.__settings['enable_authentication'] or not self.settings['enable_transactions']:
-            return transactions
-
-        log.LOG.info('Retrieving transactions for {}'.format(currency))
-
-        transactions_loaded = False
-        while transactions_loaded is False:
-            try:
-                transactions = self.__exchange.fetch_transactions(currency)
-                transactions_loaded = True
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                handlers.ExchangeNotAvailableHandler(error=error)
-            except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                handlers.AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
-                self.__settings['enable_authentication'] = False
-            except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-                handlers.DDoSProtectionHandler(error=error)
-            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                handlers.PermissionDeniedHandler(error=error)
-            log.LOG.info('Found the following transactions for {}{}: {}'.format(
-                currency,
-                u'\U0001F525',
-                transactions
-            ))
-
-        return transactions
-
-    def __fetch_buys_and_sells(self, account):
-        """ Fetches buy/sell information for an account """
-        transactions = []
-        self._prepare_authentication()
-        if not self.__settings['enable_authentication'] or not self.settings['enable_transactions']:
-            return transactions
-
-        log.LOG.info('Retrieving transactions for {}'.format(account))
-
-        buys_loaded = False
-        while buys_loaded is False:
-            try:
-                transactions = self.__exchange.fetch_my_buys(account)
-                buys_loaded = True
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                handlers.ExchangeNotAvailableHandler(error=error)
-            except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                handlers.AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
-                self.__settings['enable_authentication'] = False
-            except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-                handlers.DDoSProtectionHandler(error=error)
-            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                handlers.PermissionDeniedHandler(error=error)
-
-        sells_loaded = False
-        while sells_loaded is False:
-            try:
-                transactions = self.__exchange.fetch_my_sells(account)
-                sells_loaded = True
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                handlers.ExchangeNotAvailableHandler(error=error)
-            except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                handlers.AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
-                self.__settings['enable_authentication'] = False
-            except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-                handlers.DDoSProtectionHandler(error=error)
-            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                handlers.PermissionDeniedHandler(error=error)
-
-        log.LOG.info('Found the following buys for {}{}: {}'.format(
-            account,
-            u'\U0001F525',
-            transactions
-        ))
-        return transactions
-
-    def __fetch_trades(self):
-        """ Fetches the deposits """
-        trades = []
-        self._prepare_authentication()
-        if not self.__settings['enable_authentication'] or not self.settings['enable_transactions']:
-            return trades
-        for ticker in self.__settings['tickers']:
-            if (not self.settings['transaction_currencies']) or (ticker in self.settings['transaction_currencies']):
-                log.LOG.info('Retrieving the trades for {}'.format(ticker))
-                # ticker_id = self.__exchange.markets.get(ticker).get('id')
-                trades_loaded = False
-                while trades_loaded is False:
-                    try:
-                        trades = self.__exchange.fetch_my_trades(ticker)
-                        trades_loaded = True
-                    except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-                        handlers.ExchangeNotAvailableHandler(error=error)
-                    except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                        handlers.AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
-                        self.__settings['enable_authentication'] = False
-                    except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-                        handlers.DDoSProtectionHandler(error=error, sleep=15)
-                    except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                        handlers.PermissionDeniedHandler(error=error)
-                    log.LOG.info('Found the following trades for {}{}: {}'.format(
-                        ticker,
-                        u'\U0001F525',
-                        trades
-                    ))
-        return trades
-
-    def __process_transactions(self, transactions):
-        """ Processes the transactions and prepares them for the collector """
-        processed_transactions = {
-            'amount': float(0),
-            'currency': None,
-            'reference_currency': None,
-        }
-        results = {}
-        for transaction in transactions:
-            if 'currency' in transaction:
-                processed_transactions['currency'] = transaction.get('info').get('currency')
-                if processed_transactions['currency']:
-                    processed_transactions.update({
-                        'currency': None
-                    })
-        return results
-
-    def __process_trades(self, trades):
-        """ Processes the transactions and prepares them for the collector """
-        processed_trades = {
-            'amount': float(0),
-            'currency': None,
-            'reference_currency': None,
-        }
-        results = {}
-        for trade in trades:
-            if 'currency' in trade:
-                processed_trades['currency'] = trade.get('info').get('currency')
-                if processed_trades['currency']:
-                    processed_trades.update({
-                        'currency': None
-                    })
-        return results
-
-    def __detect_transactions_method(self):
-        method = None
-        if self.__exchange.has['fetchTransactions']:
-            method = 'transactions'
-        elif self.__exchange.has['fetchMyBuys'] and self.__exchange.has['fetchMySells']:
-            method = 'buys_and_sells'
-        elif self.__exchange.has['fetchMyTrades']:
-            method = 'trades'
-        else:
-            log.LOG.warning('The exchange does not support retrieving the transaction history')
-
-        return method
-
-    def retrieve_transactions(self):
-        """ Connects to the exchange, downloads the transactions data and saves it in
-            self.__settings['transactions']
-        """
-        self._prepare_authentication()
-        if not self.__settings['enable_authentication'] or not self.settings['enable_transactions']:
-            return
-
-        method = self.__detect_transactions_method()
-
-        transactions = []
-        if method == 'transactions':
-            log.LOG.info('Loading transactions')
-            for currency in self.__settings['accounts']:
-                if (
-                        not self.settings['transaction_currencies']
-                        or currency in self.settings['transaction_currencies']
-                ):
-                    transactions.append(self.__process_transactions(self.__fetch_transactions(currency)))
-
-        if method == 'buys_and_sells':
-            log.LOG.info('Loading buys and sells')
-            for currency in self.__settings['accounts']:
-                if (
-                        not self.settings['transaction_currencies']
-                        or currency in self.settings['transaction_currencies']
-                ):
-                    transactions.append(self.__process_transactions(self.__fetch_buys_and_sells(currency)))
-
-        if method == 'trades':
-            log.LOG.info('Loading trades')
-            transactions.append(self.__process_trades(self.__fetch_trades()))
-        self.__settings['transactions'] = transactions
+        log.debug('Found the following accounts: {}'.format(self.__settings['accounts']))

@@ -5,4 +5,4 @@
 VERSION = None
 BUILD = None
 
-WARN_TICKER_SLOW_LOAD = 'Exchange doesn\'t support fetching all the tickers at in one go. Loading them individually'
+WARN_TICKER_SLOW_LOAD = 'Exchange doesn\'t support fetching all the tickers in one go. Loading them individually.'
