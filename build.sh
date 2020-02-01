@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
 
-echo "Setting VERSION='${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}' in src/constants.py"
-echo "VERSION = '${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}'" >> src/constants.py
+echo "Setting VERSION"
+find . -name .git -type d -prune -o -type f -name constants.py -exec sed -i s/^VERSION.*/VERSION\ =\ \'${CI_COMMIT_REF_NAME}\'/g {} + -exec grep VERSION {} +
+echo "Setting BUILD"
+find . -name .git -type d -prune -o -type f -name constants.py -exec sed -i s/^BUILD.*/BUILD\ =\ \'${CI_COMMIT_SHORT_SHA}\'/g {} + -exec grep BUILD {} +
