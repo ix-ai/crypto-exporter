@@ -11,6 +11,8 @@ Prometheus exporter, written in python, for different crypto exchanges
 
 ## Features
 
+**Warning**: The labels `source_currency` and `target_currency` are deprecated and will be removed soon!
+
 The crypto-exporter generates two sets of metrics:
 
 ### exchange_rate
@@ -20,18 +22,14 @@ Example:
 ```prom
 # HELP exchange_rate Current exchange rates
 # TYPE exchange_rate gauge
-exchange_rate{currency="BTC",exchange="bitfinex",reference_currency="USD"} 9311.2
-exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="USD"} 67.781
-exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="BTC"} 0.0072618
-exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="USD"} 179.50461962
-exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="BTC"} 0.019279
-exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="BTC"} 0.0011989
-exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="USD"} 11.155
-exchange_rate{currency="RRT",exchange="bitfinex",reference_currency="USD"} 0.0233
-exchange_rate{currency="RRT",exchange="bitfinex",reference_currency="BTC"} 2.59e-06
-exchange_rate{currency="ZEC",exchange="bitfinex",reference_currency="USD"} 65.226
-exchange_rate{currency="ZEC",exchange="bitfinex",reference_currency="BTC"} 0.0069783
-exchange_rate{currency="XMR",exchange="bitfinex",reference_currency="USD"} 70.42
+exchange_rate{currency="BTC",exchange="bitfinex",reference_currency="USD",source_currency="BTC",target_currency="USD"} 9386.9
+exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="USD",source_currency="LTC",target_currency="USD"} 70.256
+exchange_rate{currency="LTC",exchange="bitfinex",reference_currency="BTC",source_currency="LTC",target_currency="BTC"} 0.007498
+exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="USD",source_currency="ETH",target_currency="USD"} 182.59
+exchange_rate{currency="ETH",exchange="bitfinex",reference_currency="BTC",source_currency="ETH",target_currency="BTC"} 0.019445
+exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="BTC",source_currency="ETC",target_currency="BTC"} 0.0012486
+exchange_rate{currency="ETC",exchange="bitfinex",reference_currency="USD",source_currency="ETC",target_currency="USD"} 11.712
+exchange_rate{currency="RRT",exchange="bitfinex",reference_currency="USD",source_currency="RRT",target_currency="USD"} 0.0234
 ```
 
 ### Account balance
@@ -41,9 +39,9 @@ Example:
 ```prom
 # HELP account_balance Account Balance
 # TYPE account_balance gauge
-account_balance{account="total",currency="XRP",exchange="kraken"} 279.39357642
-account_balance{account="total",currency="XLM",exchange="kraken"} 14.0003552
-account_balance{account="total",currency="ETH",exchange="kraken"} 9.29332537
+account_balance{account="total",currency="XRP",exchange="kraken",source_currency="XRP",} 279.39357642
+account_balance{account="total",currency="XLM",exchange="kraken",source_currency="XLM",} 14.0003552
+account_balance{account="total",currency="ETH",exchange="kraken",source_currency="ETH",} 9.29332537
 ```
 
 ## Usage
