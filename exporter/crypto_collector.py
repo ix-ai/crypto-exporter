@@ -18,12 +18,12 @@ class CryptoCollector():
             'exchange_rate': GaugeMetricFamily(
                 'exchange_rate',
                 'Current exchange rates',
-                labels=['currency', 'reference_currency', 'exchange']
+                labels=['currency', 'reference_currency', 'exchange', 'source_currency', 'target_currency']
             ),
             'account_balance': GaugeMetricFamily(
                 'account_balance',
                 'Account Balance',
-                labels=['currency', 'account', 'exchange']
+                labels=['currency', 'account', 'exchange', 'source_currency']
             ),
         }
         exchange.retrieve_tickers()
@@ -35,6 +35,8 @@ class CryptoCollector():
                     tickers[rate]['currency'],
                     tickers[rate]['reference_currency'],
                     exchange.exchange,
+                    tickers[rate]['currency'],
+                    tickers[rate]['reference_currency'],
                 ]
             )
 
@@ -45,7 +47,12 @@ class CryptoCollector():
                 if accounts[currency].get(account_type,) and (accounts[currency].get(account_type, 0) > 0):
                     metrics['account_balance'].add_metric(
                         value=(accounts[currency][account_type]),
-                        labels=[currency, account_type, exchange.exchange]
+                        labels=[
+                            currency,
+                            account_type,
+                            exchange.exchange,
+                            currency,
+                        ]
                     )
 
         for metric in metrics.values():
