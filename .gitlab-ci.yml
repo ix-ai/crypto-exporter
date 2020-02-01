@@ -1,8 +1,8 @@
 variables:
   DOCKERHUB_REPO_NAME: crypto-exporter
-  # ENABLE_ARM64: 'true'
-  # ENABLE_ARMv7: 'true'
-  # ENABLE_ARMv6: 'true'
+  ENABLE_ARM64: 'true'
+  ENABLE_ARMv7: 'true'
+  ENABLE_ARMv6: 'true'
 
 include:
   - project: 'ix.ai/ci-templates'
