@@ -26,7 +26,7 @@ def main():
     """ The main function """
     port = int(os.environ.get('PORT', 9188))
     log.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, port))
-
+    log.warning("The labels 'source_currency' and 'target_currency' are deprecated and will likely be removed soon")
     options = {}
 
     options['exchange'] = os.environ.get('EXCHANGE')
