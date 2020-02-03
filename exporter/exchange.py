@@ -116,6 +116,30 @@ class Exchange():
                 self.__settings['enable_authentication'] = True
                 log.debug('Authentication is configured')
 
+    def __load_retry(self, method, *args, retries=15, **kwargs):
+        """ Tries up to {retries} times to call the ccxt function and then gives up """
+        data = None
+        data_loaded = False
+        count = 0
+        log.debug(f'Calling {method} with {retries} retries')
+        while data_loaded is False:
+            try:
+                count += 1
+                if count > retries:
+                    data_loaded = True
+                    log.error(f'Maximum retries reached while calling {method}. Giving up.')
+                else:
+                    func = getattr(self.__exchange, method)
+                    data = func(*args, **kwargs)
+                    data_loaded = True
+            except ccxt.DDoSProtection as error:
+                DDoSProtectionHandler(error=error)
+            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
+                ExchangeNotAvailableHandler(error=error)
+            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
+                PermissionDeniedHandler(error=error)
+        return data
+
     def __process_tickers(self, tickers):
         """ Formats the tickers """
         for ticker in tickers:
@@ -133,18 +157,7 @@ class Exchange():
 
     def __fetch_tickers(self):
         log.info('Loading tickers')
-        tickers = {}
-        tickers_loaded = False
-        while tickers_loaded is False:
-            try:
-                tickers = self.__exchange.fetch_tickers()
-                tickers_loaded = True
-            except ccxt.DDoSProtection as error:
-                DDoSProtectionHandler(error=error)
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                ExchangeNotAvailableHandler(error=error)
-            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                PermissionDeniedHandler(error=error)
+        tickers = self.__load_retry('fetch_tickers')
         return tickers
 
     def __fetch_each_ticker(self, symbols):
@@ -171,34 +184,17 @@ class Exchange():
 
     def __fetch_ticker(self, symbol):
         log.info('Loading ticker for symbol {}'.format(symbol))
-        ticker = None
-        tickers_loaded = False
-        while tickers_loaded is False:
-            try:
-                ticker = {symbol: {'last': self.__exchange.fetch_ticker(symbol)['last']}}
-                tickers_loaded = True
-            except ccxt.DDoSProtection as error:
-                DDoSProtectionHandler(error=error)
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                ExchangeNotAvailableHandler(error=error)
-        if ticker:
-            return ticker
+        data = self.__load_retry('fetch_ticker', symbol)
+        ticker = {}
+        if data:
+            ticker = {symbol: {'last': data['last']}}
+        return ticker
 
     def __fetch_markets(self):
         log.info('Fetching markets')
-        markets_fetched = False
         if not self.__markets:
-            while markets_fetched is False:
-                try:
-                    self.__markets = self.__exchange.fetch_markets()
-                    markets_fetched = True
-                except ccxt.DDoSProtection as error:
-                    DDoSProtectionHandler(error=error, sleep=15)
-                except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
-                    ExchangeNotAvailableHandler(error=error)
-                except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                    PermissionDeniedHandler(error=error)
-                log.debug('Found these markets: {}'.format(self.__markets))
+            self.__markets = self.__load_retry('fetch_markets', retries=5)
+            log.debug('Found these markets: {}'.format(self.__markets))
         markets = self.__markets
         return markets
 
@@ -225,21 +221,9 @@ class Exchange():
             return
 
         log.info('Retrieving accounts')
-        accounts = {}
-        try:
-            accounts = self.__exchange.fetch_balance()
-            self.__settings['accounts'] = {}
-        except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
-            ExchangeNotAvailableHandler(error=error)
-        except (ccxt.AuthenticationError, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-            AuthenticationErrorHandler(error=error, nonce=self.settings['nonce'])
-            self.__settings['enable_authentication'] = False
-        except ccxt.DDoSProtection as error:  # pylint: disable=duplicate-except
-            DDoSProtectionHandler(error=error)
-        except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-            PermissionDeniedHandler(error=error)
-
+        accounts = self.__load_retry('fetch_balance')
         if accounts.get('total'):
+            self.__settings['accounts'] = {}
             for currency in accounts['total']:
                 if not self.__settings['accounts'].get(currency):
                     self.__settings['accounts'].update({currency: {}})
