@@ -13,44 +13,40 @@ log = logging.getLogger('crypto-exporter')
 
 def DDoSProtectionHandler(error, sleep=15):
     """ Prints a warning and sleeps """
-    log.warning(
-        '({}) Rate limit has been reached.'.format(inspect.stack()[1].function),
-        'Sleeping for {}s. The exception: {}'.format(sleep, error),
-    )
+    caller = inspect.stack()[1].function
+    error = (str(error)[:75] + '..') if len(str(error)) > 75 else str(error)
+    log.warning(f'({caller}) Rate limit has been reached. Sleeping for {sleep}s. The exception: {error}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
 def ExchangeNotAvailableHandler(error, sleep=10):
     """ Prints an error and sleeps """
-    log.error(
-        '({}) The exchange API could not be reached.'.format(inspect.stack()[1].function),
-        'Sleeping for {}. The error: {}'.format(sleep, error),
-    )
+    caller = inspect.stack()[1].function
+    error = (str(error)[:75] + '..') if len(str(error)) > 75 else str(error)
+    log.error(f'({caller}) The exchange API could not be reached. Sleeping for {sleep}. The error: {error}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
 def AuthenticationErrorHandler(error, nonce=''):
     """ Logs hints about the authentication error """
-    message = "({}) Can't authenticate to read the accounts.".format(inspect.stack()[1].function)
+    caller = inspect.stack()[1].function
+    error = (str(error)[:75] + '..') if len(str(error)) > 75 else str(error)
+    message = f"({caller}) Can't authenticate to read the accounts."
     if 'request timestamp expired' in str(error):
         if nonce == 'milliseconds':
             message += ' Set NONCE to `seconds` and try again.'
         elif nonce == 'seconds':
             message += ' Set NONCE to `milliseconds` and try again.'
     else:
-        message += '{} The exception: {}'.format(
-            " Check your API_KEY/API_SECRET/API_UID. Disabling the credentials.",
-            str(error)
-        )
+        message += f'Check your API_KEY/API_SECRET/API_UID. Disabling the credentials. The exception: {error}'
     log.error(message)
 
 
 def PermissionDeniedHandler(error):
     """ Prints error and gives hints about the cause """
-    log.error(
-        '({}) The exchange reports "permission denied": {}'.format(inspect.stack()[1].function, error),
-        'Check the API token permissions',
-    )
+    caller = inspect.stack()[1].function
+    error = (str(error)[:75] + '..') if len(str(error)) > 75 else str(error)
+    log.error(f'({caller}) The exchange reports "permission denied": {error} Check the API token permissions')
 
 
 class Exchange():
