@@ -116,7 +116,7 @@ class Exchange():
                 self.__settings['enable_authentication'] = True
                 log.debug('Authentication is configured')
 
-    def __load_retry(self, method, *args, retries=15, **kwargs):
+    def __load_retry(self, method, *args, retries=5, **kwargs):
         """ Tries up to {retries} times to call the ccxt function and then gives up """
         data = None
         data_loaded = False
