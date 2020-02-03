@@ -11,7 +11,7 @@ from .lib import constants
 log = logging.getLogger('crypto-exporter')
 
 
-def DDoSProtectionHandler(error, sleep=15):
+def DDoSProtectionHandler(error, sleep=1):
     """ Prints a warning and sleeps """
     caller = inspect.stack()[1].function
     error = (str(error)[:75] + '..') if len(str(error)) > 75 else str(error)
@@ -142,18 +142,22 @@ class Exchange():
 
     def __process_tickers(self, tickers):
         """ Formats the tickers """
-        for ticker in tickers:
-            currencies = ticker.split('/')
-            if len(currencies) == 2 and tickers[ticker].get('last'):
-                pair = {
-                    'currency': currencies[0],
-                    'reference_currency': currencies[1],
-                    'value': float(tickers[ticker]['last']),
-                }
+        # if tickers:
+        try:
+            for ticker in tickers:
+                currencies = ticker.split('/')
+                if len(currencies) == 2 and tickers[ticker].get('last'):
+                    pair = {
+                        'currency': currencies[0],
+                        'reference_currency': currencies[1],
+                        'value': float(tickers[ticker]['last']),
+                    }
 
-                self.__settings['tickers'].update({
-                    '{}'.format(ticker): pair
-                })
+                    self.__settings['tickers'].update({
+                        '{}'.format(ticker): pair
+                    })
+        except TypeError:
+            log.debug('No tickers to process')
 
     def __fetch_tickers(self):
         log.info('Loading tickers')
@@ -222,13 +226,16 @@ class Exchange():
 
         log.info('Retrieving accounts')
         accounts = self.__load_retry('fetch_balance')
-        if accounts.get('total'):
-            self.__settings['accounts'] = {}
-            for currency in accounts['total']:
-                if not self.__settings['accounts'].get(currency):
-                    self.__settings['accounts'].update({currency: {}})
-                self.__settings['accounts'][currency].update({
-                    'total': accounts['total'][currency],
-                })
+        try:
+            if accounts.get('total'):
+                self.__settings['accounts'] = {}
+                for currency in accounts['total']:
+                    if not self.__settings['accounts'].get(currency):
+                        self.__settings['accounts'].update({currency: {}})
+                    self.__settings['accounts'][currency].update({
+                        'total': accounts['total'][currency],
+                    })
+        except AttributeError:
+            log.debug('No accounts found to process')
 
         log.debug('Found the following accounts: {}'.format(self.__settings['accounts']))
