@@ -22,8 +22,7 @@ log = logging.setup_logger(
 )
 
 
-def main():
-    """ The main function """
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 9188))
     log.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, port))
     log.warning("The labels 'source_currency' and 'target_currency' are deprecated and will likely be removed soon")
@@ -76,7 +75,3 @@ def main():
     start_http_server(port)
     while True:
         time.sleep(1)
-
-
-if __name__ == '__main__':
-    main()

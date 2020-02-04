@@ -132,6 +132,9 @@ class Exchange():
                     func = getattr(self.__exchange, method)
                     data = func(*args, **kwargs)
                     data_loaded = True
+            except KeyError as error:
+                log.error(f'Reloading markets. Exception occurred: {error}')
+                self.__fetch_markets()
             except ccxt.DDoSProtection as error:
                 DDoSProtectionHandler(error=error)
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
