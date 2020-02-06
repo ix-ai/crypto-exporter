@@ -119,28 +119,29 @@ class Exchange():
     def __load_retry(self, method, *args, retries=5, **kwargs):
         """ Tries up to {retries} times to call the ccxt function and then gives up """
         data = None
-        data_loaded = False
+        retry = True
         count = 0
         log.debug(f'Calling {method} with {retries} retries')
-        while data_loaded is False:
+        while retry:
             try:
                 count += 1
                 if count > retries:
-                    data_loaded = True
                     log.error(f'Maximum retries reached while calling {method}. Giving up.')
                 else:
                     func = getattr(self.__exchange, method)
                     data = func(*args, **kwargs)
-                    data_loaded = True
+                retry = False
             except KeyError as error:
-                log.error(f'Reloading markets. Exception occurred: {error}')
+                log.warning(f'Reloading markets. Exception occurred: {error}')
                 self.__fetch_markets(force=True)
+                retry = False
             except ccxt.DDoSProtection as error:
                 DDoSProtectionHandler(error=error)
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
                 ExchangeNotAvailableHandler(error=error)
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
                 PermissionDeniedHandler(error=error)
+                retry = False
         return data
 
     def __process_tickers(self, tickers):
