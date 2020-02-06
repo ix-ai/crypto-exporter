@@ -134,7 +134,7 @@ class Exchange():
                     data_loaded = True
             except KeyError as error:
                 log.error(f'Reloading markets. Exception occurred: {error}')
-                self.__fetch_markets()
+                self.__fetch_markets(force=True)
             except ccxt.DDoSProtection as error:
                 DDoSProtectionHandler(error=error)
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
@@ -197,9 +197,10 @@ class Exchange():
             ticker = {symbol: {'last': data['last']}}
         return ticker
 
-    def __fetch_markets(self):
+    def __fetch_markets(self, force=False):
+        """ Loads the markets and saves them in self.__markets """
         log.info('Fetching markets')
-        if not self.__markets:
+        if force or not self.__markets:
             self.__markets = self.__load_retry('fetch_markets', retries=5)
             log.debug('Found these markets: {}'.format(self.__markets))
         markets = self.__markets
@@ -215,7 +216,7 @@ class Exchange():
             tickers = self.__fetch_tickers()
         else:
             log.warning(constants.WARN_TICKER_SLOW_LOAD)
-            tickers = self.__fetch_each_ticker(self.__markets)
+            tickers = self.__fetch_each_ticker(self.__fetch_markets())
 
         self.__process_tickers(tickers)
 
