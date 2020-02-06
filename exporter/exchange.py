@@ -126,7 +126,7 @@ class Exchange():
             try:
                 count += 1
                 if count > retries:
-                    log.error(f'Maximum retries reached while calling {method}. Giving up.')
+                    log.warning(f'Reached max retries while calling {method} with args "{args}" and kwargs {kwargs}.')
                 else:
                     func = getattr(self.__exchange, method)
                     data = func(*args, **kwargs)
