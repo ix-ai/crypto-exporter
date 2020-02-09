@@ -2,24 +2,16 @@
 # -*- coding: utf-8 -*-
 """ Prometheus Exporter for Crypto Exchanges """
 
+import logging
 import time
 import os
-import sys
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
 from .exchange import Exchange
 from .lib import constants
-from .lib import log as logging
 
-log = logging.setup_logger(
-    name='crypto-exporter',
-    level=os.environ.get('LOGLEVEL', 'INFO'),
-    gelf_host=os.environ.get('GELF_HOST'),
-    gelf_port=int(os.environ.get('GELF_PORT', 12201)),
-    _exchange=os.environ.get('EXCHANGE', 'unconfigured'),
-    _ix_id=os.environ.get('EXCHANGE', os.path.splitext(sys.modules['__main__'].__file__)[0]),
-)
+log = logging.getLogger(__package__)
 
 
 if __name__ == '__main__':
@@ -27,11 +19,6 @@ if __name__ == '__main__':
     log.warning("Starting {} {}-{} on port {}".format(__package__, constants.VERSION, constants.BUILD, port))
     log.warning("The labels 'source_currency' and 'target_currency' are deprecated and will likely be removed soon")
     options = {}
-
-    options['exchange'] = os.environ.get('EXCHANGE')
-    if not options['exchange']:
-        raise ValueError("Missing EXCHANGE environment variable. See README.md.")
-    log.info('Configured EXCHANGE: {}'.format(options['exchange']))
 
     if os.environ.get("API_KEY"):
         options['api_key'] = os.environ.get('API_KEY')
@@ -66,12 +53,27 @@ if __name__ == '__main__':
         log.info('Configured GELF_HOST: {}'.format(os.environ.get('GELF_HOST')))
         log.info('Configured GELF_PORT: {}'.format(int(os.environ.get('GELF_PORT', 12201))))
 
-    exchange = Exchange(**options)
+    if os.environ.get('TEST'):
+        log.warning('Running in TEST mode')
+        for exchange in ['kraken', 'binance', 'bitfinex']:
+            options['exchange'] = exchange
+            options['symbols'] = 'ETH/USD'
+            exchange = Exchange(**options)
+            collector = CryptoCollector(exchange=exchange)
+            for metric in collector.collect():
+                log.info(f"{metric}")
+    else:
+        options['exchange'] = os.environ.get('EXCHANGE')
+        if not options['exchange']:
+            raise ValueError("Missing EXCHANGE environment variable. See README.md.")
+        log.info('Configured EXCHANGE: {}'.format(options['exchange']))
 
-    collector = CryptoCollector(exchange=exchange)
+        exchange = Exchange(**options)
 
-    REGISTRY.register(collector)
+        collector = CryptoCollector(exchange=exchange)
 
-    start_http_server(port)
-    while True:
-        time.sleep(1)
+        REGISTRY.register(collector)
+
+        start_http_server(port)
+        while True:
+            time.sleep(1)

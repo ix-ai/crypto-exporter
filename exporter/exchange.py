@@ -8,7 +8,7 @@ import time
 import ccxt
 from .lib import constants
 
-log = logging.getLogger('crypto-exporter')
+log = logging.getLogger(__package__)
 
 
 def DDoSProtectionHandler(error, sleep=1):
