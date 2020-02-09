@@ -38,7 +38,7 @@ def AuthenticationErrorHandler(error, nonce=''):
         elif nonce == 'seconds':
             message += ' Set NONCE to `milliseconds` and try again.'
     else:
-        message += f'Check your API_KEY/API_SECRET/API_UID. Disabling the credentials. The exception: {error}'
+        message += f' Check your API_KEY/API_SECRET/API_UID/API_PASS. Disabling the credentials. The exception: {error}'
     log.error(message)
 
 
@@ -141,6 +141,9 @@ class Exchange():
                 ExchangeNotAvailableHandler(error=error)
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
                 PermissionDeniedHandler(error=error)
+                retry = False
+            except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
+                AuthenticationErrorHandler(error=error)
                 retry = False
         return data
 
