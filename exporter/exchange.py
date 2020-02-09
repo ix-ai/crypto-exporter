@@ -158,7 +158,7 @@ class Exchange():
                     }
 
                     self.__settings['tickers'].update({
-                        '{}'.format(ticker): pair
+                        f'{ticker}': pair
                     })
         except TypeError:
             log.debug('No tickers to process')
@@ -170,7 +170,7 @@ class Exchange():
 
     def __fetch_each_ticker(self, symbols):
         log.info('Loading each ticker rate individually')
-        log.debug('Loading for these individual entries: {}'.format(symbols))
+        log.debug(f'Loading for these individual entries: {symbols}')
         tickers = {}
         for symbol in symbols:
             retrieve_ticker = False
@@ -191,7 +191,7 @@ class Exchange():
         return tickers
 
     def __fetch_ticker(self, symbol):
-        log.info('Loading ticker for symbol {}'.format(symbol))
+        log.info(f'Loading ticker for symbol {symbol}')
         data = self.__load_retry('fetch_ticker', symbol)
         ticker = {}
         if data:
@@ -203,7 +203,7 @@ class Exchange():
         log.info('Fetching markets')
         if force or not self.__markets:
             self.__markets = self.__load_retry('fetch_markets', retries=5)
-            log.debug('Found these markets: {}'.format(self.__markets))
+            log.debug(f'Found these markets: {self.__markets}')
         markets = self.__markets
         return markets
 
@@ -221,7 +221,7 @@ class Exchange():
 
         self.__process_tickers(tickers)
 
-        log.debug('Found the following ticker rates: {}'.format(self.__settings['tickers']))
+        log.debug(f"Found the following ticker rates: {self.__settings['tickers']}")
 
     def retrieve_accounts(self):
         """ Connects to the exchange, downloads the accounts data and saves it in self.__settings['accounts'] """
@@ -243,4 +243,4 @@ class Exchange():
         except AttributeError:
             log.debug('No accounts found to process')
 
-        log.debug('Found the following accounts: {}'.format(self.__settings['accounts']))
+        log.debug(f"Found the following accounts: {self.__settings['accounts']}")
