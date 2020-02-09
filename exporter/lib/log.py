@@ -8,6 +8,7 @@ import pygelf
 
 def setup_logger(name, level='INFO', gelf_host=None, gelf_port=None, **kwargs):
     """ sets up the logger """
+    logging.basicConfig(handlers=[logging.NullHandler()])
     formatter = logging.Formatter(
         fmt='%(asctime)s.%(msecs)03d %(levelname)s [%(module)s.%(funcName)s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
