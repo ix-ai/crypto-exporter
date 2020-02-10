@@ -103,9 +103,13 @@ class Exchange():
         """ Returns the accounts """
         return self.__settings['accounts']
 
+    def get_enable_authentication(self):
+        """ Returns the status of the authentication """
+        return self.__settings['enable_authentication']
+
     def _prepare_authentication(self):
         """ Checks if API_KEY and API_SECRET are set """
-        if self.__settings.get('enable_authentication') is None:
+        if self.__settings['enable_authentication'] is None:
             if self.__settings.get('api_key') and self.__settings.get('api_secret'):
                 self.__exchange.apiKey = self.__settings['api_key']
                 self.__exchange.secret = self.__settings['api_secret']
