@@ -169,13 +169,12 @@ class Exchange():
             log.debug('No tickers to process')
 
     def __fetch_tickers(self):
-        log.info('Loading tickers')
+        log.debug('Fetching tickers')
         tickers = self.__load_retry('fetch_tickers')
         return tickers
 
     def __fetch_each_ticker(self, symbols):
-        log.info('Loading each ticker rate individually')
-        log.debug(f'Loading for these individual entries: {symbols}')
+        log.debug(f'Fetching for these individual entries: {symbols}')
         tickers = {}
         for symbol in symbols:
             retrieve_ticker = False
@@ -196,7 +195,7 @@ class Exchange():
         return tickers
 
     def __fetch_ticker(self, symbol):
-        log.info(f'Loading ticker for symbol {symbol}')
+        log.debug(f'Fetching ticker for symbol {symbol}')
         data = self.__load_retry('fetch_ticker', symbol)
         ticker = {}
         if data:
@@ -205,7 +204,7 @@ class Exchange():
 
     def __fetch_markets(self, force=False):
         """ Loads the markets and saves them in self.__markets """
-        log.info('Fetching markets')
+        log.debug(f'Fetching markets with force={force}')
         if force or not self.__markets:
             self.__markets = self.__load_retry('fetch_markets', retries=5)
             log.debug(f'Found these markets: {self.__markets}')
