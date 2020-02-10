@@ -105,7 +105,7 @@ class Exchange():
 
     def _prepare_authentication(self):
         """ Checks if API_KEY and API_SECRET are set """
-        if self.settings.get('enable_authentication') is None:
+        if self.__settings.get('enable_authentication') is None:
             if self.__settings.get('api_key') and self.__settings.get('api_secret'):
                 self.__exchange.apiKey = self.__settings['api_key']
                 self.__exchange.secret = self.__settings['api_secret']
@@ -140,9 +140,11 @@ class Exchange():
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:  # pylint: disable=duplicate-except
                 ExchangeNotAvailableHandler(error=error)
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
+                self.__settings['enable_authentication'] = False
                 PermissionDeniedHandler(error=error)
                 retry = False
             except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
+                self.__settings['enable_authentication'] = False
                 AuthenticationErrorHandler(error=error)
                 retry = False
         return data
