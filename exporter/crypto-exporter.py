@@ -17,7 +17,6 @@ log = logging.getLogger(__package__)
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 9188))
     log.warning(f'Starting {__package__} {constants.VERSION}-{constants.BUILD} on port {port}')
-    log.warning("The labels 'source_currency' and 'target_currency' are deprecated and will likely be removed soon")
     options = {}
 
     if os.environ.get("API_KEY"):
