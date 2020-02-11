@@ -29,10 +29,11 @@ class CryptoCollector():
             f'Information about {__package__}',
             labels=['exchange', 'version', 'build']
         )
-        return m.add_metric(
+        m.add_metric(
             value={'version': f'{constants.VERSION}', 'build': f'{constants.BUILD}'},
             labels=[f'{self.exchange.exchange}'],
         )
+        return m
 
     def get_metric_uptime(self):
         """ Uptime information """
@@ -41,10 +42,11 @@ class CryptoCollector():
             f'Uptime of {__package__}',
             labels=['exchange']
         )
-        return m.add_metric(
+        m.add_metric(
             value=time.time(),
             labels=[f'{self.exchange.exchange}'],
         )
+        return m
 
     def get_metric_authentication(self):
         """ Shows if the current run was authenticated """
@@ -53,10 +55,11 @@ class CryptoCollector():
             'Shows if authentication is enabled',
             labels=['exchange'],
         )
-        return m.add_metric(
+        m.add_metric(
             [f'{self.exchange.exchange}'],
             {'enabled': self.exchange.get_enable_authentication()},
         )
+        return m
 
     def metric_account_balance(self):
         """ Returns an instance of GaugeMetricFamily initialized for account balance """
@@ -99,7 +102,7 @@ class CryptoCollector():
             for account_type in accounts[currency]:
                 if accounts[currency].get(account_type,) and (accounts[currency].get(account_type, 0) > 0):
                     metrics['account_balance'].add_metric(
-                        value=(accounts[currency][account_type]),
+                        value=accounts[currency][account_type],
                         labels=[
                             f'{currency}',
                             f'{account_type}',
