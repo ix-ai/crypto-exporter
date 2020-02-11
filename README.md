@@ -11,8 +11,6 @@ Prometheus exporter, written in python, for different crypto exchanges
 
 ## Features
 
-**Warning**: The labels `source_currency` and `target_currency` are deprecated and will be removed soon!
-
 The crypto-exporter generates two sets of metrics:
 
 ### exchange_rate
