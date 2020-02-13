@@ -56,7 +56,7 @@ transactions_total{currency="ETH",exchange="coinbase",reference_currency="EUR",t
 transactions_total{currency="BTC",exchange="coinbase",reference_currency="EUR",type="trade"} -1639.779999999999
 ```
 
-See also [ENABLE_TRANSACTIONS](#enable-transactions)
+See also [ENABLE_TRANSACTIONS](#enable_transactions)
 
 ## Usage
 ```sh
