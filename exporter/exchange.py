@@ -65,10 +65,14 @@ class Exchange():
         self.exchange = kwargs['exchange']
         self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
         __exchange = getattr(ccxt, self.exchange)
-        self.__exchange = __exchange({
+
+        exchange_options = {
             'nonce': getattr(__exchange, self.settings['nonce']),
             'enableRateLimit': True,
-        })
+        }
+        if kwargs.get('default_exchange_type'):
+            exchange_options.update({'defaultType': kwargs['default_exchange_type']})
+        self.__exchange = __exchange(exchange_options)
 
         # Settable defaults
         self.settings['enable_tickers'] = kwargs.get('enable_tickers', True)

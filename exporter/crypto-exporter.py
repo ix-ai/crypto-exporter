@@ -48,6 +48,9 @@ if __name__ == '__main__':
     if os.environ.get("REFERENCE_CURRENCIES"):
         options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
         log.info(f"Configured REFERENCE_CURRENCIES: {options['reference_currencies']}")
+    if os.environ.get("DEFAULT_EXCHANGE_TYPE"):
+        options['default_exchange_type'] = os.environ.get("DEFAULT_EXCHANGE_TYPE")
+        log.info(f"Configured DEFAULT_EXCHANGE_TYPE: {options['default_exchange_type']}")
 
     options['nonce'] = os.environ.get('NONCE', 'milliseconds')
     log.info(f"Configured NONCE: {options['nonce']}")
