@@ -37,6 +37,11 @@ if __name__ == '__main__':
         options['enable_tickers'] = True
     log.info(f"Configured ENABLE_TICKERS: {options['enable_tickers']}")
 
+    options['enable_transactions'] = False
+    if os.environ.get('ENABLE_TRANSACTIONS', 'false').lower() == 'true':
+        options['enable_transactions'] = True
+        log.info(f"Configured ENABLE_TRANSACTIONS: {options['enable_transactions']}")
+
     if os.environ.get("SYMBOLS"):
         options['symbols'] = os.environ.get("SYMBOLS")
         log.info(f"Configured SYMBOLS: {options['symbols']}")

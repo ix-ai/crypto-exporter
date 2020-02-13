@@ -9,10 +9,7 @@ from .lib import constants
 class CryptoCollector():
     """ The CryptoCollector creating Prometheus metrics """
 
-    metrics = {
-        'account_balance': None,
-        'exchange_rate': None,
-    }
+    metrics = {}
 
     def __init__(self, exchange):
         """ Initializes the class """
@@ -77,6 +74,14 @@ class CryptoCollector():
             labels=['currency', 'reference_currency', 'exchange']
         )
 
+    def metric_transaction_total(self):
+        """ Returns an instance of GaugeMetricFamily initialized for transaction history """
+        return GaugeMetricFamily(
+            'transactions_total',
+            'The transaction history for an account',
+            labels=['currency', 'reference_currency', 'exchange', 'type']
+        )
+
     def collect(self):
         """ This is the function that takes the exchange data and converts it to prometheus metrics """
         exchange = self.exchange
@@ -84,9 +89,9 @@ class CryptoCollector():
 
         exchange.retrieve_tickers()
         tickers = exchange.get_tickers()
-        metrics['exchange_rate'] = self.metric_exchange_rate()
+        exchange_rate = self.metric_exchange_rate()
         for rate in tickers:
-            metrics['exchange_rate'].add_metric(
+            exchange_rate.add_metric(
                 value=tickers[rate]['value'],
                 labels=[
                     f"{tickers[rate]['currency']}",
@@ -94,14 +99,18 @@ class CryptoCollector():
                     f'{exchange.exchange}',
                 ]
             )
+        yield exchange_rate
 
         exchange.retrieve_accounts()
         accounts = exchange.get_accounts()
-        metrics['account_balance'] = self.metric_account_balance()
+        account_balance = self.metric_account_balance()
         for currency in accounts:
             for account_type in accounts[currency]:
-                if accounts[currency].get(account_type,) and (accounts[currency].get(account_type, 0) > 0):
-                    metrics['account_balance'].add_metric(
+                if (
+                        accounts[currency].get(account_type,)
+                        and not (accounts[currency].get(account_type, 0) == 0)
+                ):
+                    account_balance.add_metric(
                         value=accounts[currency][account_type],
                         labels=[
                             f'{currency}',
@@ -109,6 +118,22 @@ class CryptoCollector():
                             f'{exchange.exchange}',
                         ]
                     )
+        yield account_balance
+
+        exchange.retrieve_transactions()
+        transaction_data = exchange.get_transactions()
+        transactions_total = self.metric_transaction_total()
+        for currency, reference_currency, transaction_type in transaction_data:
+            transactions_total.add_metric(
+                value=transaction_data[(currency, reference_currency, transaction_type)],
+                labels=[
+                    f'{currency}',
+                    f'{reference_currency}',
+                    f'{exchange.exchange}',
+                    f'{transaction_type}',
+                ]
+            )
+        yield transactions_total
 
         metrics['authentication'] = self.get_metric_authentication()
 
