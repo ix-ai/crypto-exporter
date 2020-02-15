@@ -52,10 +52,13 @@ class CryptoCollector():
             'Shows if authentication is enabled',
             labels=['exchange'],
         )
-        m.add_metric(
-            [f'{self.exchange.exchange}'],
-            {'enabled': self.exchange.get_enable_authentication()},
-        )
+        try:
+            m.add_metric(
+                [f'{self.exchange.exchange}'],
+                {'enabled': self.exchange.get_enable_authentication()},
+            )
+        except AttributeError:
+            pass
         return m
 
     def metric_account_balance(self):

@@ -8,7 +8,6 @@ import os
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
-from .exchange import Exchange
 from .lib import constants
 
 log = logging.getLogger(__package__)
@@ -42,6 +41,11 @@ if __name__ == '__main__':
         options['enable_transactions'] = True
         log.info(f"Configured ENABLE_TRANSACTIONS: {options['enable_transactions']}")
 
+    options['enable_zero_balance'] = False
+    if os.environ.get('ENABLE_ZERO_BALANCE', 'false').lower() == 'true':
+        options['enable_zero_balance'] = True
+        log.info(f"Configured ENABLE_ZERO_BALANCE: {options['enable_zero_balance']}")
+
     if os.environ.get("SYMBOLS"):
         options['symbols'] = os.environ.get("SYMBOLS")
         log.info(f"Configured SYMBOLS: {options['symbols']}")
@@ -51,6 +55,18 @@ if __name__ == '__main__':
     if os.environ.get("DEFAULT_EXCHANGE_TYPE"):
         options['default_exchange_type'] = os.environ.get("DEFAULT_EXCHANGE_TYPE")
         log.info(f"Configured DEFAULT_EXCHANGE_TYPE: {options['default_exchange_type']}")
+
+    if os.environ.get("URL"):
+        options['url'] = os.environ['URL']
+        log.info(f"Configured URL: {options['url']}")
+
+    if os.environ.get("ADDRESSES"):
+        options['addresses'] = os.environ['ADDRESSES']
+        log.info(f"Configured ADDRESSES: {options['addresses']}")
+
+    if os.environ.get("TOKENS"):
+        options['tokens'] = os.environ['TOKENS']
+        log.info(f"Configured TOKENS: {options['tokens']}")
 
     options['nonce'] = os.environ.get('NONCE', 'milliseconds')
     log.info(f"Configured NONCE: {options['nonce']}")
@@ -64,8 +80,8 @@ if __name__ == '__main__':
         log.warning('Running in TEST mode')
         for exchange in ['kraken', 'bitfinex']:
             options['exchange'] = exchange
-            exchange = Exchange(**options)
-            collector = CryptoCollector(exchange=exchange)
+            from .connectors.ccxt_connector import CcxtConnector
+            collector = CryptoCollector(exchange=CcxtConnector(**options))
             for metric in collector.collect():
                 log.info(f"{metric}")
     else:
@@ -74,7 +90,12 @@ if __name__ == '__main__':
             raise ValueError("Missing EXCHANGE environment variable. See README.md.")
         log.info(f"Configured EXCHANGE: {options['exchange']}")
 
-        exchange = Exchange(**options)
+        if options['exchange'] == 'etherscan':
+            from .connectors.etherscan_connector import EtherscanConnector
+            exchange = EtherscanConnector(**options)
+        else:
+            from .connectors.ccxt_connector import CcxtConnector
+            exchange = CcxtConnector(**options)
 
         collector = CryptoCollector(exchange=exchange)
 
