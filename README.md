@@ -137,7 +137,7 @@ Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io AP
 | `API_KEY`                | -                              | **YES**       | Set this to your Etherscan API key |
 | `ADDRESSES`              | -                              | NO            | A comma separated list of ETH addresses |
 | `TOKENS`                 | -                              | NO            | A JSON object with the list of tokens to export (see [below](#tokens-variable)) |
-| `URL`                    | `https://api.etherscan.io/api` | NO            | See below [Off-Exchange Balances](#off-exchange-balances) |
+| `URL`                    | `https://api.etherscan.io/api` | NO            | The base URL to query |
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
@@ -156,7 +156,7 @@ Support for the BTC account balance is implemented by querying the [blockchain.i
 |:-------------------------|:-------------------------:|:-------------:|:-----------------|
 | `EXCHANGE`               | -                         | **YES**       | Set this to `blockchain` |
 | `ADDRESSES`              | -                         | NO            | A comma separated list of BTC addresses |
-| `URL`                    | `https://blockchain.info` | NO            | See below [Off-Exchange Balances](#off-exchange-balances) |
+| `URL`                    | `https://blockchain.info` | NO            | The base URL to query |
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
