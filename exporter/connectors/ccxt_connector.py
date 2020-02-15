@@ -3,65 +3,21 @@
 """ Handles the exchange data and communication """
 
 import logging
-import inspect
-import time
 import ccxt
-from .lib import constants
+from ..lib import constants
+from ..lib import utils
+from .connector import Connector
 
 log = logging.getLogger(__package__)
 
 
-def short_msg(msg, chars=75):
-    """ Truncates the message to {chars} characters and adds three dots at the end """
-    return (str(msg)[:chars] + '..') if len(str(msg)) > chars else str(msg)
-
-
-def DDoSProtectionHandler(error, sleep=1):
-    """ Prints a warning and sleeps """
-    caller = inspect.stack()[1].function
-    log.warning(f'({caller}) Rate limit has been reached. Sleeping for {sleep}s. The exception: {short_msg(error)}')
-    time.sleep(sleep)  # don't hit the rate limit
-
-
-def ExchangeNotAvailableHandler(error, sleep=10):
-    """ Prints an error and sleeps """
-    caller = inspect.stack()[1].function
-    log.error(f'({caller}) The exchange API could not be reached. Sleeping for {sleep}s. The error: {short_msg(error)}')
-    time.sleep(sleep)  # don't hit the rate limit
-
-
-def AuthenticationErrorHandler(error, nonce=''):
-    """ Logs hints about the authentication error """
-    caller = inspect.stack()[1].function
-    error = short_msg(error)
-    message = f"({caller}) Can't authenticate to read the accounts."
-    if 'request timestamp expired' in str(error):
-        if nonce == 'milliseconds':
-            message += ' Set NONCE to `seconds` and try again.'
-        elif nonce == 'seconds':
-            message += ' Set NONCE to `milliseconds` and try again.'
-    else:
-        message += f' Check your API_KEY/API_SECRET/API_UID/API_PASS. Disabling the credentials. The exception: {error}'
-    log.error(message)
-
-
-def PermissionDeniedHandler(error):
-    """ Prints error and gives hints about the cause """
-    caller = inspect.stack()[1].function
-    error = short_msg(error)
-    log.error(f'({caller}) The exchange reports "permission denied": {error} Check the API token permissions')
-
-
-class Exchange():
-    """ The Exchange class """
+class CcxtConnector(Connector):
+    """ The CCXT Connector class """
 
     settings = {}
-    __settings = {}
 
     def __init__(self, **kwargs):
         # Mandatory attributes
-        log.info('Initializing exchange...')
-
         self.exchange = kwargs['exchange']
         self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
         __exchange = getattr(ccxt, self.exchange)
@@ -77,59 +33,41 @@ class Exchange():
         # Settable defaults
         self.settings['enable_tickers'] = kwargs.get('enable_tickers', True)
         self.settings['enable_transactions'] = kwargs.get('enable_transactions', True)
-        self.settings['symbols'] = kwargs.get('symbols')
-        self.settings['reference_currencies'] = kwargs.get('reference_currencies')
+        self.settings['symbols'] = kwargs.get('symbols', '')
+        self.settings['reference_currencies'] = kwargs.get('reference_currencies', '')
 
         # Convert the strings to lists
         if self.settings['symbols']:
             self.settings['symbols'] = self.settings['symbols'].split(',')
-        self.__settings['reference_currencies'] = []
         if self.settings['reference_currencies']:
-            self.__settings['reference_currencies'] = self.settings['reference_currencies'].split(',')
+            self.settings['reference_currencies'] = self.settings['reference_currencies'].split(',')
 
         # Authentication data
-        self.__settings['api_key'] = kwargs.get('api_key')
-        self.__settings['api_secret'] = kwargs.get('api_secret')
-        self.__settings['api_pass'] = kwargs.get('api_pass')
-        self.__settings['api_uid'] = kwargs.get('api_uid')
-
-        # Exporter Data
-        self.__settings['accounts'] = {}
-        self.__settings['tickers'] = {}
-        self.__settings['transactions'] = {}
+        self.settings['api_key'] = kwargs.get('api_key')
+        self.settings['api_secret'] = kwargs.get('api_secret')
+        self.settings['api_pass'] = kwargs.get('api_pass')
+        self.settings['api_uid'] = kwargs.get('api_uid')
 
         # Internal settings and lists
-        self.__settings['enable_authentication'] = None
+        self.settings['enable_authentication'] = None
         self.__markets = None
-        log.info('Exchange initialized')
-
-    def get_tickers(self):
-        """ Returns the stored ticker rates """
-        return self.__settings['tickers']
-
-    def get_accounts(self):
-        """ Returns the accounts """
-        return self.__settings['accounts']
+        super().__init__()
 
     def get_enable_authentication(self):
         """ Returns the status of the authentication """
-        return self.__settings['enable_authentication']
-
-    def get_transactions(self):
-        """ Returns the transaction history """
-        return self.__settings['transactions']
+        return self.settings['enable_authentication']
 
     def _prepare_authentication(self):
         """ Checks if API_KEY and API_SECRET are set """
-        if self.__settings['enable_authentication'] is None:
-            if self.__settings.get('api_key') and self.__settings.get('api_secret'):
-                self.__exchange.apiKey = self.__settings['api_key']
-                self.__exchange.secret = self.__settings['api_secret']
-                if self.__settings.get('api_pass'):
-                    self.__exchange.password = self.__settings['api_pass']
-                if self.__settings.get('api_uid'):
-                    self.__exchange.uid = self.__settings['api_uid']
-                self.__settings['enable_authentication'] = True
+        if self.settings['enable_authentication'] is None:
+            if self.settings.get('api_key') and self.settings.get('api_secret'):
+                self.__exchange.apiKey = self.settings['api_key']
+                self.__exchange.secret = self.settings['api_secret']
+                if self.settings.get('api_pass'):
+                    self.__exchange.password = self.settings['api_pass']
+                if self.settings.get('api_uid'):
+                    self.__exchange.uid = self.settings['api_uid']
+                self.settings['enable_authentication'] = True
                 log.debug('Authentication is configured')
 
     def __load_retry(self, method, *args, retries=5, **kwargs):
@@ -153,17 +91,17 @@ class Exchange():
                 self.__fetch_markets(force=True)
                 retry = False
             except ccxt.DDoSProtection as error:
-                DDoSProtectionHandler(error=error)
+                utils.DDoSProtectionHandler(error=error)
             except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
-                self.__settings['enable_authentication'] = False
-                AuthenticationErrorHandler(error=error)
+                self.settings['enable_authentication'] = False
+                utils.AuthenticationErrorHandler(error=error)
                 retry = False
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
-                self.__settings['enable_authentication'] = False
-                PermissionDeniedHandler(error=error)
+                self.settings['enable_authentication'] = False
+                utils.PermissionDeniedHandler(error=error)
                 retry = False
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                ExchangeNotAvailableHandler(error=error)
+                utils.ExchangeNotAvailableHandler(error=error)
         return data
 
     def __process_tickers(self, tickers):
@@ -179,12 +117,12 @@ class Exchange():
                         'value': float(tickers[ticker]['last']),
                     }
 
-                    self.__settings['tickers'].update({
+                    self._tickers.update({
                         f'{ticker}': pair
                     })
         except TypeError:
             log.debug('No tickers to process')
-        log.debug(f"Found these tickers: {self.__settings['tickers']}")
+        log.debug(f"Found these tickers: {self._tickers}")
 
     def __process_ledger_entry_native_amount(self, transaction):
         """ Processes the transaction and calculates the totals based on currency and native_amount """
@@ -213,12 +151,12 @@ class Exchange():
             if 'symbol' in symbol:  # this happens when the symbols are loaded by fetch_markets
                 symbol = symbol['symbol']
 
-            if (not self.settings['symbols'] and not self.__settings['reference_currencies']):
+            if (not self.settings['symbols'] and not self.settings['reference_currencies']):
                 retrieve_ticker = True
             if self.settings['symbols'] and symbol in self.settings['symbols']:
                 retrieve_ticker = True
-            if self.__settings['reference_currencies']:
-                for currency in self.__settings['reference_currencies']:
+            if self.settings['reference_currencies']:
+                for currency in self.settings['reference_currencies']:
                     if currency == symbol.split('/')[1]:
                         retrieve_ticker = True
 
@@ -278,7 +216,7 @@ class Exchange():
         return ledger
 
     def retrieve_tickers(self):
-        """ Connects to the exchange, downloads the price tickers and saves them in self.__settings['tickers'] """
+        """ Connects to the exchange, downloads the price tickers and saves them in self._tickers """
         if not self.settings.get('enable_tickers'):
             return
 
@@ -295,12 +233,12 @@ class Exchange():
 
         self.__process_tickers(tickers)
 
-        log.debug(f"Found the following ticker rates: {self.__settings['tickers']}")
+        log.debug(f"Found the following ticker rates: {self._tickers}")
 
     def retrieve_accounts(self):
-        """ Connects to the exchange, downloads the accounts data and saves it in self.__settings['accounts'] """
+        """ Connects to the exchange, downloads the accounts data and saves it in self._accounts """
         self._prepare_authentication()
-        if not self.__settings['enable_authentication']:
+        if not self.settings['enable_authentication']:
             return
 
         if not self.__markets:
@@ -310,17 +248,17 @@ class Exchange():
         accounts = self.__load_retry('fetch_balance')
         try:
             if accounts.get('total'):
-                self.__settings['accounts'] = {}
+                self._accounts = {}
                 for currency in accounts['total']:
-                    if not self.__settings['accounts'].get(currency):
-                        self.__settings['accounts'].update({currency: {}})
-                    self.__settings['accounts'][currency].update({
+                    if not self._accounts.get(currency):
+                        self._accounts.update({currency: {}})
+                    self._accounts[currency].update({
                         'total': accounts['total'][currency],
                     })
         except AttributeError:
             log.debug('No accounts found to process')
 
-        log.debug(f"Found the following accounts: {self.__settings['accounts']}")
+        log.debug(f"Found the following accounts: {self._accounts}")
 
     def __process_ledger_native_amount(self, ledger=None):
         if not ledger:
@@ -331,11 +269,11 @@ class Exchange():
             if entry['info'].get('native_amount'):
                 currency, reference_currency, value = self.__process_ledger_entry_native_amount(entry['info'])
                 if currency:
-                    if not self.__settings['transactions'].get((currency, reference_currency, transaction_type)):
-                        self.__settings['transactions'].update({
+                    if not self._transactions.get((currency, reference_currency, transaction_type)):
+                        self._transactions.update({
                             (currency, reference_currency, transaction_type): float(0),
                         })
-                    self.__settings['transactions'][(currency, reference_currency, transaction_type)] -= value
+                    self._transactions[(currency, reference_currency, transaction_type)] -= value
 
     def __process_ledger_refid(self, ledger=None):
         if not ledger:
@@ -355,14 +293,14 @@ class Exchange():
                         reference_currency = entry['currency']
                         transaction_type = entry['type']
                         value = float(entry['amount'])
-                        if not self.__settings['transactions'].get((currency, reference_currency, transaction_type)):
-                            self.__settings['transactions'].update({
+                        if not self._transactions.get((currency, reference_currency, transaction_type)):
+                            self._transactions.update({
                                 (currency, reference_currency, transaction_type): float(0),
                             })
                         if entry['direction'] == 'in':
-                            self.__settings['transactions'][(currency, reference_currency, transaction_type)] += value
+                            self._transactions[(currency, reference_currency, transaction_type)] += value
                         if entry['direction'] == 'out':
-                            self.__settings['transactions'][(currency, reference_currency, transaction_type)] -= value
+                            self._transactions[(currency, reference_currency, transaction_type)] -= value
 
     def retrieve_transactions(self):
         """
@@ -373,12 +311,12 @@ class Exchange():
         if not self.settings.get('enable_transactions'):
             return
         self._prepare_authentication()
-        if not self.__settings['enable_authentication']:
+        if not self.settings['enable_authentication']:
             return
 
         if not self.__markets:
             self.__fetch_markets()
-        if not self.__settings['accounts']:
+        if not self._accounts:
             self.retrieve_accounts()
 
         log.info('Retrieving transactions')
@@ -386,7 +324,7 @@ class Exchange():
         if self.__exchange.has['fetchLedger']:
             # Fetches the ledger for every account
             ledger = []
-            for account in self.__settings['accounts']:
+            for account in self._accounts:
                 account_ledger = self.__fetch_ledger(account)
                 if account_ledger and account_ledger[0]['info'].get('native_amount'):
                     ledger += account_ledger
@@ -395,7 +333,7 @@ class Exchange():
                     break
 
             if (len(ledger) > 0 and ledger[0].get('info')):
-                self.__settings['transactions'] = {}
+                self._transactions = {}
                 if ledger[0]['info'].get('native_amount'):
                     self.__process_ledger_native_amount(ledger)
                 if ledger[0]['info'].get('refid'):

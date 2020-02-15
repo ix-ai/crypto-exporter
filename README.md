@@ -11,7 +11,7 @@ Prometheus exporter, written in python, for different crypto exchanges
 
 ## Features
 
-The crypto-exporter generates two sets of metrics:
+The crypto-exporter generates three sets of metrics. You can also get only the `account_balance` for off-exchange accounts (see below: [Off-Exchange Balances](#off-exchange-balances))
 
 ### exchange_rate
 The exchange rates for the symbols traded. Use this to get the tickers.
@@ -77,6 +77,7 @@ docker run --rm -it -p 9999:9999 \
 ```
 
 ### Supported variables
+
 | **Variable**             | **Default**    | **Mandatory** | **Description**  |
 |:-------------------------|:--------------:|:-------------:|:-----------------|
 | `EXCHANGE`               | -              | **YES**       | See below [Tested exchanges](#tested-exchanges) |
@@ -122,6 +123,42 @@ transactions_total{currency="XLM",exchange="kraken",reference_currency="EUR",typ
 * When looking at the sum of all ETH/EUR transactions, `149.51` EUR profit were made. So, more Euros were gained by selling ETH than were made by buying
 
 This option is disabled by default, since there aren't many exchanges that support it and it increases the time, by querying the exchange. So far, it has been tested successfully with `coinbase` and `kraken`.
+
+### Off-Exchange Balances
+
+The crypto-exporter also supports, in addition to the exchanges, reporting the account balance directly from (some) blockchains.
+
+#### ETH and ERC20 Tokens
+Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io API](https://etherscan.io/apis). The following environment variables are supported:
+
+| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
+|:-------------------------|:------------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                              | **YES**       | Set this to `etherscan` |
+| `API_KEY`                | -                              | **YES**       | Set this to your Etherscan API key |
+| `ADDRESSES`              | -                              | NO            | A comma separated list of ETH addresses |
+| `TOKENS`                 | -                              | NO            | A JSON object with the list of tokens to export (see [below](#tokens-variable)) |
+| `URL`                    | `https://api.etherscan.io/api` | NO            | The base URL to query |
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+
+##### TOKENS Variable
+Example:
+```
+TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel","short":"DAN","decimals": 10}]'
+```
+
+The technical information can be found on [etherscan.io](https://etherscan.io/token/0x9b70740e708a083c6ff38df52297020f5dfaa5ee#readContract)
+
+#### BTC
+Support for the BTC account balance is implemented by querying the [blockchain.info API](https://www.blockchain.com/api). The following environment variables are supported:
+
+| **Variable**             | **Default**               | **Mandatory** | **Description**  |
+|:-------------------------|:-------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                         | **YES**       | Set this to `blockchain` |
+| `ADDRESSES`              | -                         | NO            | A comma separated list of BTC addresses |
+| `URL`                    | `https://blockchain.info` | NO            | The base URL to query |
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
 ### Tested exchanges
 * coinbase
