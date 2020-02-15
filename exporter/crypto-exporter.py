@@ -93,6 +93,9 @@ if __name__ == '__main__':
         if options['exchange'] == 'etherscan':
             from .connectors.etherscan_connector import EtherscanConnector
             exchange = EtherscanConnector(**options)
+        if options['exchange'] == 'blockchain':
+            from .connectors.blockchain_connector import BlockchainConnector
+            exchange = BlockchainConnector(**options)
         else:
             from .connectors.ccxt_connector import CcxtConnector
             exchange = CcxtConnector(**options)
