@@ -135,7 +135,7 @@ Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io AP
 |:-------------------------|:------------------------------:|:-------------:|:-----------------|
 | `EXCHANGE`               | -                              | **YES**       | Set this to `etherscan` |
 | `API_KEY`                | -                              | **YES**       | Set this to your Etherscan API key |
-| `ADDRESSES`              | -                              | NO            | A comma separated list of ETH addresses |
+| `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
 | `TOKENS`                 | -                              | NO            | A JSON object with the list of tokens to export (see [below](#tokens-variable)) |
 | `URL`                    | `https://api.etherscan.io/api` | NO            | The base URL to query |
 
@@ -149,14 +149,29 @@ TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel
 
 The technical information can be found on [etherscan.io](https://etherscan.io/token/0x9b70740e708a083c6ff38df52297020f5dfaa5ee#readContract)
 
+**WARNING** The token balance will be retrieved for **every** address configured under `ADDRESSES`.
+
 #### BTC
 Support for the BTC account balance is implemented by querying the [blockchain.info API](https://www.blockchain.com/api). The following environment variables are supported:
 
 | **Variable**             | **Default**               | **Mandatory** | **Description**  |
 |:-------------------------|:-------------------------:|:-------------:|:-----------------|
 | `EXCHANGE`               | -                         | **YES**       | Set this to `blockchain` |
-| `ADDRESSES`              | -                         | NO            | A comma separated list of BTC addresses |
+| `ADDRESSES`              | -                         | **YES**       | A comma separated list of BTC addresses |
 | `URL`                    | `https://blockchain.info` | NO            | The base URL to query |
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+
+#### Ripple
+Support for the Ripple account balance is implemented by querying the [ripple.com API](https://data.ripple.com). The following environment variables are supported:
+
+| **Variable**             | **Default**               | **Mandatory** | **Description**  |
+|:-------------------------|:-------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                         | **YES**       | Set this to `ripple` |
+| `ADDRESSES`              | -                         | **YES**       | A comma separated list of Ripple accounts |
+| `URL`                    | `https://data.ripple.com` | NO            | The base URL to query |
+
+Since you can have multiple currencies on the Ripple Blockchain, all of them are exported.
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
