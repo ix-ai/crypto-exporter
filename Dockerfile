@@ -11,11 +11,14 @@ RUN apk --no-cache upgrade && \
                        py3-multidict \
                        py3-aiohttp \
                        py3-pip \
-                       gcc \
-                       musl-dev \
-                       python3-dev && \
+                       py3-toml \
+                       py3-numpy \
+                       py3-pynacl \
+                       py3-urllib3 \
+                       py3-yarl && \
+    apk add --no-cache python3-dev gcc musl-dev libffi-dev make && \
     pip3 install --no-cache-dir -r exporter/requirements.txt && \
-    apk del --purge --no-cache gcc musl-dev python3-dev py3-pip
+    apk del --purge --no-cache gcc musl-dev python3-dev py3-pip libffi-dev
 
 COPY exporter/ /exporter
 COPY crypto-exporter.sh /usr/local/bin/crypto-exporter.sh
