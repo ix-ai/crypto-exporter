@@ -5,8 +5,12 @@
 import logging
 import inspect
 import time
+import os
+import json
+from distutils.util import strtobool
 
-log = logging.getLogger(__package__)
+
+log = logging.getLogger('crypto-exporter')
 
 
 def short_msg(msg, chars=75):
@@ -48,3 +52,53 @@ def PermissionDeniedHandler(error):
     caller = inspect.stack()[1].function
     error = short_msg(error)
     log.error(f'({caller}) The exchange reports "permission denied": {error} Check the API token permissions')
+
+
+def gather_environ(keys=None) -> dict:
+    """
+    Return a dict of environment variables correlating to the keys dict
+
+    :param keys: The environ keys to use, each of them correlating to `int`, `list`, `json`, `string` or `bool`.
+                 The format of the values should be key = {'key_type': type, 'default': value, 'mandatory': bool}
+    :return: A dict of found environ values
+    """
+    environs = {}
+    for key, key_details in keys.items():
+        environment_key = os.environ.get(key.upper())
+        if environment_key:
+            environs.update({key: environment_key})
+
+            if key_details['key_type'] == 'int':
+                environs[key] = int(environment_key)
+
+            if key_details['key_type'] == 'list':
+                environs[key] = environs[key].split(',')
+
+            if key_details['key_type'] == 'json':
+                try:
+                    environs[key] = json.loads(environment_key)
+                except (TypeError, json.decoder.JSONDecodeError):
+                    log.warning((
+                        f"{key.upper()} does not contain a valid JSON object."
+                        f" Setting to: {key_details['default']}."
+                    ))
+                    environs[key] = key_details['default']
+
+            if key_details['key_type'] == 'bool':
+                try:
+                    environs[key] = strtobool(environment_key)
+                except ValueError:
+                    log.warning(f"Invalid value for {key.upper()}. Setting to: {key_details['default']}.")
+                    environs[key] = key_details['default']
+
+            if key_details.get('redact'):
+                log.debug(f"{key.upper()} set to ***redacted***")
+            else:
+                log.debug(f"{key.upper()} set to {environs[key]}")
+
+        elif key_details['mandatory']:
+            raise KeyError(f'{key.upper()} is mandatory')
+        else:
+            environs[key] = key_details['default']
+            log.debug(f"{key.upper()} is not set. Using default: {key_details['default']}")
+    return environs

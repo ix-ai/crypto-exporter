@@ -6,7 +6,7 @@ import logging
 import pygelf
 
 
-def setup_logger(name=__package__, level='INFO', gelf_host=None, gelf_port=None, **kwargs):
+def setup_logger(name='crypto-exporter', level='INFO', gelf_host=None, gelf_port=None, **kwargs):
     """ sets up the logger """
     logging.basicConfig(handlers=[logging.NullHandler()])
     formatter = logging.Formatter(

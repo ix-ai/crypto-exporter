@@ -8,18 +8,74 @@ from ..lib import constants
 from ..lib import utils
 from .connector import Connector
 
-log = logging.getLogger(__package__)
+log = logging.getLogger('crypto-exporter')
 
 
 class CcxtConnector(Connector):
     """ The CCXT Connector class """
 
     settings = {}
+    params = {
+        'api_key': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+            'redact': True,
+        },
+        'api_secret': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+            'redact': True,
+        },
+        'api_uid': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+            'redact': True,
+        },
+        'api_pass': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+            'redact': True,
+        },
+        'enable_tickers': {
+            'key_type': 'bool',
+            'default': True,
+            'mandatory': False,
+        },
+        'enable_transactions': {
+            'key_type': 'bool',
+            'default': False,
+            'mandatory': False,
+        },
+        'symbols': {
+            'key_type': 'list',
+            'default': None,
+            'mandatory': False,
+        },
+        'reference_currencies': {
+            'key_type': 'list',
+            'default': None,
+            'mandatory': False,
+        },
+        'default_exchange_type': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+        },
+        'nonce': {
+            'key_type': 'string',
+            'default': 'milliseconds',
+            'mandatory': False,
+        },
+    }
 
     def __init__(self, **kwargs):
         # Mandatory attributes
         self.exchange = kwargs['exchange']
-        self.settings['nonce'] = kwargs.get('nonce', 'milliseconds')
+        self.settings['nonce'] = kwargs.get('nonce', self.params['nonce']['default'])
         __exchange = getattr(ccxt, self.exchange)
 
         exchange_options = {
@@ -31,16 +87,13 @@ class CcxtConnector(Connector):
         self.__exchange = __exchange(exchange_options)
 
         # Settable defaults
-        self.settings['enable_tickers'] = kwargs.get('enable_tickers', True)
-        self.settings['enable_transactions'] = kwargs.get('enable_transactions', True)
-        self.settings['symbols'] = kwargs.get('symbols', '')
-        self.settings['reference_currencies'] = kwargs.get('reference_currencies', '')
-
-        # Convert the strings to lists
-        if self.settings['symbols']:
-            self.settings['symbols'] = self.settings['symbols'].split(',')
-        if self.settings['reference_currencies']:
-            self.settings['reference_currencies'] = self.settings['reference_currencies'].split(',')
+        self.settings['enable_tickers'] = kwargs.get('enable_tickers', self.params['enable_tickers']['default'])
+        self.settings['enable_transactions'] = kwargs.get(
+            'enable_transactions',
+            self.params['enable_transactions']['default']
+        )
+        self.settings['symbols'] = kwargs.get('symbols')
+        self.settings['reference_currencies'] = kwargs.get('reference_currencies')
 
         # Authentication data
         self.settings['api_key'] = kwargs.get('api_key')
