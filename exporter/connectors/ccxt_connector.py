@@ -276,7 +276,7 @@ class CcxtConnector(Connector):
         if not self.__markets:
             self.__fetch_markets()
 
-        log.info('Retrieving tickers')
+        log.debug('Retrieving tickers')
         tickers = {}
         if self.__exchange.has['fetchTickers']:
             tickers = self.__fetch_tickers()
@@ -297,7 +297,7 @@ class CcxtConnector(Connector):
         if not self.__markets:
             self.__fetch_markets()
 
-        log.info('Retrieving accounts')
+        log.debug('Retrieving accounts')
         accounts = self.__load_retry('fetch_balance')
         try:
             if accounts.get('total'):
@@ -372,7 +372,7 @@ class CcxtConnector(Connector):
         if not self._accounts:
             self.retrieve_accounts()
 
-        log.info('Retrieving transactions')
+        log.debug('Retrieving transactions')
 
         if self.__exchange.has['fetchLedger']:
             # Fetches the ledger for every account
