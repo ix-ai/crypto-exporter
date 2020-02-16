@@ -73,6 +73,14 @@ if __name__ == '__main__':
             log.error(f'{e}')
             sys.exit()
         connector = BlockchainConnector(**options)
+    elif exchange == 'ripple':
+        from .connectors.ripple_connector import RippleConnector
+        try:
+            options.update(gather_environ(RippleConnector.params))
+        except KeyError as e:
+            log.error(f'{e}')
+            sys.exit()
+        connector = RippleConnector(**options)
     else:
         from .connectors.ccxt_connector import CcxtConnector
         try:
