@@ -46,7 +46,7 @@ if __name__ == '__main__':
         gelf_host=options['gelf_host'],
         gelf_port=options['gelf_port'],
         _exchange=exchange,
-        _ix_id=__package__,
+        _ix_id=f'{__package__}-{exchange}',
         _version=version,
     )
 
