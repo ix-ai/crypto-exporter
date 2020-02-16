@@ -124,11 +124,11 @@ transactions_total{currency="XLM",exchange="kraken",reference_currency="EUR",typ
 
 This option is disabled by default, since there aren't many exchanges that support it and it increases the time, by querying the exchange. So far, it has been tested successfully with `coinbase` and `kraken`.
 
-### Off-Exchange Balances
+## Off-Exchange Balances
 
 The crypto-exporter also supports, in addition to the exchanges, reporting the account balance directly from (some) blockchains.
 
-#### ETH and ERC20 Tokens
+### ETH and ERC20 Tokens
 Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io API](https://etherscan.io/apis). The following environment variables are supported:
 
 | **Variable**             | **Default**                    | **Mandatory** | **Description**  |
@@ -141,7 +141,7 @@ Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io AP
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
-##### TOKENS Variable
+#### TOKENS Variable
 Example:
 ```
 TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel","short":"DAN","decimals": 10}]'
@@ -151,7 +151,7 @@ The technical information can be found on [etherscan.io](https://etherscan.io/to
 
 **WARNING** The token balance will be retrieved for **every** address configured under `ADDRESSES`.
 
-#### BTC
+### BTC
 Support for the BTC account balance is implemented by querying the [blockchain.info API](https://www.blockchain.com/api). The following environment variables are supported:
 
 | **Variable**             | **Default**               | **Mandatory** | **Description**  |
@@ -162,7 +162,7 @@ Support for the BTC account balance is implemented by querying the [blockchain.i
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
-#### Ripple
+### Ripple
 Support for the Ripple account balance is implemented by querying the [ripple.com API](https://data.ripple.com). The following environment variables are supported:
 
 | **Variable**             | **Default**               | **Mandatory** | **Description**  |
@@ -175,7 +175,20 @@ Since you can have multiple currencies on the Ripple Blockchain, all of them are
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
-### Tested exchanges
+### Stellar
+Support for the Stellar account balance is implemented by querying the [stellar horizon server](https://horizon.stellar.org/). The following environment variables are supported:
+
+| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
+|:-------------------------|:------------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                              | **YES**       | Set this to `stellar` |
+| `ADDRESSES`              | -                              | **YES**       | A comma separated list of Ripple accounts |
+| `URL`                    | `https://horizon.stellar.org/` | NO            | The base URL to query |
+
+Since you can have multiple currencies on the Stellar Blockchain, all of them are exported.
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+
+## Tested exchanges
 * coinbase
 * coinbasepro
 * kraken

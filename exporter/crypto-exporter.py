@@ -81,6 +81,14 @@ if __name__ == '__main__':
             log.error(f'{e}')
             sys.exit()
         connector = RippleConnector(**options)
+    elif exchange == 'stellar':
+        from .connectors.stellar_connector import StellarConnector
+        try:
+            options.update(gather_environ(StellarConnector.params))
+        except KeyError as e:
+            log.error(f'{e}')
+            sys.exit()
+        connector = StellarConnector(**options)
     else:
         from .connectors.ccxt_connector import CcxtConnector
         try:
