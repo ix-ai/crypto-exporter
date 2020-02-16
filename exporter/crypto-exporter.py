@@ -2,108 +2,96 @@
 # -*- coding: utf-8 -*-
 """ Prometheus Exporter for Crypto Exchanges """
 
-import logging
 import time
 import os
+import sys
 from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
+from .lib import log as logging
 from .lib import constants
+from .lib.utils import gather_environ
 
-log = logging.getLogger(__package__)
-
+version = f'{constants.VERSION}-{constants.BUILD}'
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 9188))
-    log.warning(f'Starting {__package__} {constants.VERSION}-{constants.BUILD} on port {port}')
-    options = {}
+    # The generic params - always active
+    params = {
+        'port': {
+            'key_type': 'int',
+            'default': 9188,
+            'mandatory': False,
+        },
+        'loglevel': {
+            'key_type': 'string',
+            'default': 'INFO',
+            'mandatory': False,
+        },
+        'gelf_host': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': False,
+        },
+        'gelf_port': {
+            'key_type': 'int',
+            'default': '12201',
+            'mandatory': False,
+        }
+    }
+    options = gather_environ(params)
+    exchange = os.environ.get('EXCHANGE', 'unconfigured')
+    log = logging.setup_logger(
+        name='crypto-exporter',
+        level=options['loglevel'],
+        gelf_host=options['gelf_host'],
+        gelf_port=options['gelf_port'],
+        _exchange=exchange,
+        _ix_id=__package__,
+        _version=version,
+    )
 
-    if os.environ.get("API_KEY"):
-        options['api_key'] = os.environ.get('API_KEY')
-        log.info('Configured API_KEY')
-    if os.environ.get("API_SECRET"):
-        options['api_secret'] = os.environ.get('API_SECRET')
-        log.info('Configured API_SECRET')
-    if os.environ.get("API_UID"):
-        options['api_uid'] = os.environ.get('API_UID')
-        log.info('Configured API_UID')
-    if os.environ.get("API_PASS"):
-        options['api_pass'] = os.environ.get('API_PASS')
-        log.info('Configured API_PASS')
+    try:
+        if exchange == 'unconfigured':
+            raise ValueError("Missing EXCHANGE environment variable. See README.md.")
+    except ValueError as e:
+        log.error(f'{e}')
+        sys.exit()
 
-    options['enable_tickers'] = False
-    if os.environ.get('ENABLE_TICKERS', 'true').lower() == 'true':
-        options['enable_tickers'] = True
-    log.info(f"Configured ENABLE_TICKERS: {options['enable_tickers']}")
+    if exchange == 'etherscan':
+        from .connectors.etherscan_connector import EtherscanConnector
+        try:
+            options.update(gather_environ(EtherscanConnector.params))
+        except KeyError as e:
+            log.error(f'{e}')
+            sys.exit()
+        connector = EtherscanConnector(**options)
+    elif exchange == 'blockchain':
+        from .connectors.blockchain_connector import BlockchainConnector
+        try:
+            options.update(gather_environ(BlockchainConnector.params))
+        except KeyError as e:
+            log.error(f'{e}')
+            sys.exit()
+        connector = BlockchainConnector(**options)
+    else:
+        from .connectors.ccxt_connector import CcxtConnector
+        try:
+            options.update(gather_environ(CcxtConnector.params))
+        except KeyError as e:
+            log.error(f'{e}')
+            sys.exit()
+        connector = CcxtConnector(exchange=exchange, **options)
 
-    options['enable_transactions'] = False
-    if os.environ.get('ENABLE_TRANSACTIONS', 'false').lower() == 'true':
-        options['enable_transactions'] = True
-        log.info(f"Configured ENABLE_TRANSACTIONS: {options['enable_transactions']}")
-
-    options['enable_zero_balance'] = False
-    if os.environ.get('ENABLE_ZERO_BALANCE', 'false').lower() == 'true':
-        options['enable_zero_balance'] = True
-        log.info(f"Configured ENABLE_ZERO_BALANCE: {options['enable_zero_balance']}")
-
-    if os.environ.get("SYMBOLS"):
-        options['symbols'] = os.environ.get("SYMBOLS")
-        log.info(f"Configured SYMBOLS: {options['symbols']}")
-    if os.environ.get("REFERENCE_CURRENCIES"):
-        options['reference_currencies'] = os.environ.get("REFERENCE_CURRENCIES")
-        log.info(f"Configured REFERENCE_CURRENCIES: {options['reference_currencies']}")
-    if os.environ.get("DEFAULT_EXCHANGE_TYPE"):
-        options['default_exchange_type'] = os.environ.get("DEFAULT_EXCHANGE_TYPE")
-        log.info(f"Configured DEFAULT_EXCHANGE_TYPE: {options['default_exchange_type']}")
-
-    if os.environ.get("URL"):
-        options['url'] = os.environ['URL']
-        log.info(f"Configured URL: {options['url']}")
-
-    if os.environ.get("ADDRESSES"):
-        options['addresses'] = os.environ['ADDRESSES']
-        log.info(f"Configured ADDRESSES: {options['addresses']}")
-
-    if os.environ.get("TOKENS"):
-        options['tokens'] = os.environ['TOKENS']
-        log.info(f"Configured TOKENS: {options['tokens']}")
-
-    options['nonce'] = os.environ.get('NONCE', 'milliseconds')
-    log.info(f"Configured NONCE: {options['nonce']}")
-
-    log.info(f"Configured LOGLEVEL: {os.environ.get('LOGLEVEL', 'INFO')}")
-    if os.environ.get('GELF_HOST'):
-        log.info(f"Configured GELF_HOST: {os.environ.get('GELF_HOST')}")
-        log.info(f"Configured GELF_PORT: {int(os.environ.get('GELF_PORT', 12201))}")
+    log.info(f"Starting {__package__} {version} on port {options['port']}")
 
     if os.environ.get('TEST'):
         log.warning('Running in TEST mode')
-        for exchange in ['kraken', 'bitfinex']:
-            options['exchange'] = exchange
-            from .connectors.ccxt_connector import CcxtConnector
-            collector = CryptoCollector(exchange=CcxtConnector(**options))
-            for metric in collector.collect():
-                log.info(f"{metric}")
+        collector = CryptoCollector(exchange=connector)
+        for metric in collector.collect():
+            log.info(f"{metric}")
     else:
-        options['exchange'] = os.environ.get('EXCHANGE')
-        if not options['exchange']:
-            raise ValueError("Missing EXCHANGE environment variable. See README.md.")
-        log.info(f"Configured EXCHANGE: {options['exchange']}")
-
-        if options['exchange'] == 'etherscan':
-            from .connectors.etherscan_connector import EtherscanConnector
-            exchange = EtherscanConnector(**options)
-        elif options['exchange'] == 'blockchain':
-            from .connectors.blockchain_connector import BlockchainConnector
-            exchange = BlockchainConnector(**options)
-        else:
-            from .connectors.ccxt_connector import CcxtConnector
-            exchange = CcxtConnector(**options)
-
-        collector = CryptoCollector(exchange=exchange)
-
+        collector = CryptoCollector(exchange=connector)
         REGISTRY.register(collector)
-
-        start_http_server(port)
+        start_http_server(options['port'])
         while True:
             time.sleep(1)

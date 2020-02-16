@@ -4,12 +4,11 @@
 
 import logging
 import time
-import json
 import requests
 from ..lib import utils
 from .connector import Connector
 
-log = logging.getLogger(__package__)
+log = logging.getLogger('crypto-exporter')
 
 
 class EtherscanConnector(Connector):
@@ -20,21 +19,42 @@ class EtherscanConnector(Connector):
     """
 
     settings = {}
+    params = {
+        'api_key': {
+            'key_type': 'string',
+            'default': None,
+            'mandatory': True,
+            'redact': True,
+        },
+        'addresses': {
+            'key_type': 'list',
+            'default': None,
+            'mandatory': True,
+        },
+        'tokens': {
+            'key_type': 'json',
+            'default': None,
+            'mandatory': False,
+        },
+        'url': {
+            'key_type': 'string',
+            'default': 'https://api.etherscan.io/api',
+            'mandatory': False,
+        },
+    }
 
     def __init__(self, **kwargs):
         self.exchange = 'etherscan'
         self.settings = {
             'api_key': kwargs.get('api_key'),
-            'url': kwargs.get("url", 'https://api.etherscan.io/api'),
-            'addresses': kwargs.get('addresses'),
-            'tokens': kwargs.get('tokens', {}),
+            'url': kwargs.get("url", self.params['url']['default']),
+            'addresses': kwargs.get('addresses', self.params['addresses']['default']),
+            'tokens': kwargs.get('tokens', self.params['tokens']['default']),
+            'enable_authentication': True
         }
 
         if not self.settings.get('api_key'):
             raise ValueError("Missing api_key")
-
-        if self.settings.get('tokens'):
-            self.settings['tokens'] = json.loads(self.settings['tokens'])
 
     def _get_tokens(self):
         """ Gets the tokens from an account """
@@ -73,29 +93,36 @@ class EtherscanConnector(Connector):
 
     def retrieve_accounts(self):
         """ Gets the current balance for an account """
-        log.info('Retrieving the account balances')
-        request_data = {
-            'module': 'account',
-            'action': 'balancemulti',
-            'address': self.settings['addresses'],
-            'tag': 'latest',
-            'apikey': self.settings['api_key'],
-        }
-        try:
-            req = requests.get(self.settings['url'], params=request_data).json()
-        except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout,
-        ) as error:
-            log.exception(f'Exception caught: {utils.short_msg(error)}')
-            req = {}
-        if req.get('message') == 'OK' and req.get('result'):
-            if not self._accounts.get('ETH'):
-                self._accounts.update({'ETH': {}})
-            for result in req.get('result'):
-                self._accounts['ETH'].update({
-                    result['account']: float(result['balance'])/(1000000000000000000)
-                })
-        self._get_tokens()
+        if self.settings['enable_authentication']:
+            log.info('Retrieving the account balances')
+            request_data = {
+                'module': 'account',
+                'action': 'balancemulti',
+                'address': self.settings['addresses'],
+                'tag': 'latest',
+                'apikey': self.settings['api_key'],
+            }
+            try:
+                req = requests.get(self.settings['url'], params=request_data).json()
+            except (
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ReadTimeout,
+            ) as error:
+                log.exception(f'Exception caught: {utils.short_msg(error)}')
+                req = {}
+            log.debug(req)
+            if req.get('message') == 'OK' and req.get('result'):
+                if not self._accounts.get('ETH'):
+                    self._accounts.update({'ETH': {}})
+                for result in req.get('result'):
+                    self._accounts['ETH'].update({
+                        result['account']: float(result['balance'])/(1000000000000000000)
+                    })
+            if req.get('message') == 'NOTOK' and req.get('result') == 'Invalid API Key':
+                utils.AuthenticationErrorHandler(req.get('result'))
+                self.settings['enable_authentication'] = False
+
+            if self.settings['tokens']:
+                self._get_tokens()
         log.debug(f'Accounts: {self._accounts}')
         return self._accounts
