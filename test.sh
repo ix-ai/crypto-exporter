@@ -4,8 +4,14 @@ set -ex
 ./build.sh
 
 for EXCHANGE in "kraken" "binance" "coinbasepro"; do
-  LOGLEVEL=DEBUG EXCHANGE="${EXCHANGE}" REFERENCE_CURRENCY="EUR" SYMBOLS="BTC/EUR" TEST=y ./crypto-exporter.sh
+  EXCHANGE="${EXCHANGE}" REFERENCE_CURRENCY="EUR" SYMBOLS="BTC/EUR" TEST=y ./crypto-exporter.sh
 done
+
+# Ripple
+ADDRESSES='rDbWJ9C7uExThZYAwV8m6LsZ5YSX3sa6US' # ripple.com
+ADDRESSES="${ADDRESSES},rEy8TFcrAPvhpKrwyrscNYyqBGUkE9hKaJ" # binance
+ADDRESSES="${ADDRESSES},rLHzPsX6oXkzU2qL12kHCH8G8cnZv1rBJh" # kraken
+EXCHANGE="ripple" ADDRESSES="${ADDRESSES}" TEST=y ./crypto-exporter.sh
 
 # Stellar
 ADDRESSES='GA5XIGA5C7QTPTWXQHY6MCJRMTRZDOSHR6EFIBNDQTCQHG262N4GGKTM'  # kraken
