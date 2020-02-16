@@ -10,7 +10,8 @@ from prometheus_client.core import REGISTRY
 from .crypto_collector import CryptoCollector
 from .lib import log as logging
 from .lib import constants
-from .lib.utils import gather_environ
+from .lib import utils
+from .lib import errors
 
 version = f'{constants.VERSION}-{constants.BUILD}'
 
@@ -38,7 +39,7 @@ if __name__ == '__main__':
             'mandatory': False,
         }
     }
-    options = gather_environ(params)
+    options = utils.gather_environ(params)
     exchange = os.environ.get('EXCHANGE', 'unconfigured')
     log = logging.setup_logger(
         name='crypto-exporter',
@@ -57,46 +58,30 @@ if __name__ == '__main__':
         log.error(f'{e}')
         sys.exit()
 
-    if exchange == 'etherscan':
-        from .connectors.etherscan_connector import EtherscanConnector
-        try:
-            options.update(gather_environ(EtherscanConnector.params))
-        except KeyError as e:
-            log.error(f'{e}')
-            sys.exit()
-        connector = EtherscanConnector(**options)
-    elif exchange == 'blockchain':
-        from .connectors.blockchain_connector import BlockchainConnector
-        try:
-            options.update(gather_environ(BlockchainConnector.params))
-        except KeyError as e:
-            log.error(f'{e}')
-            sys.exit()
-        connector = BlockchainConnector(**options)
-    elif exchange == 'ripple':
-        from .connectors.ripple_connector import RippleConnector
-        try:
-            options.update(gather_environ(RippleConnector.params))
-        except KeyError as e:
-            log.error(f'{e}')
-            sys.exit()
-        connector = RippleConnector(**options)
-    elif exchange == 'stellar':
-        from .connectors.stellar_connector import StellarConnector
-        try:
-            options.update(gather_environ(StellarConnector.params))
-        except KeyError as e:
-            log.error(f'{e}')
-            sys.exit()
-        connector = StellarConnector(**options)
-    else:
-        from .connectors.ccxt_connector import CcxtConnector
-        try:
-            options.update(gather_environ(CcxtConnector.params))
-        except KeyError as e:
-            log.error(f'{e}')
-            sys.exit()
-        connector = CcxtConnector(exchange=exchange, **options)
+    try:
+        if exchange == 'etherscan':
+            from .connectors.etherscan_connector import EtherscanConnector
+            options.update(utils.gather_environ(EtherscanConnector.params))
+            connector = EtherscanConnector(**options)
+        elif exchange == 'blockchain':
+            from .connectors.blockchain_connector import BlockchainConnector
+            options.update(utils.gather_environ(BlockchainConnector.params))
+            connector = BlockchainConnector(**options)
+        elif exchange == 'ripple':
+            from .connectors.ripple_connector import RippleConnector
+            options.update(utils.gather_environ(RippleConnector.params))
+            connector = RippleConnector(**options)
+        elif exchange == 'stellar':
+            from .connectors.stellar_connector import StellarConnector
+            options.update(utils.gather_environ(StellarConnector.params))
+            connector = StellarConnector(**options)
+        else:
+            from .connectors.ccxt_connector import CcxtConnector
+            options.update(utils.gather_environ(CcxtConnector.params))
+            connector = CcxtConnector(exchange=exchange, **options)
+    except errors.EnvironmentMissing as e:
+        log.error(f'{e}')
+        sys.exit()
 
     log.info(f"Starting {__package__} {version} on port {options['port']}")
 

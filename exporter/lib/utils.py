@@ -8,6 +8,7 @@ import time
 import os
 import json
 from distutils.util import strtobool
+from . import errors
 
 
 log = logging.getLogger('crypto-exporter')
@@ -18,21 +19,21 @@ def short_msg(msg, chars=75):
     return (str(msg)[:chars] + '..') if len(str(msg)) > chars else str(msg)
 
 
-def DDoSProtectionHandler(error, sleep=1):
+def ddos_protection_handler(error, sleep=1):
     """ Prints a warning and sleeps """
     caller = inspect.stack()[1].function
     log.warning(f'({caller}) Rate limit has been reached. Sleeping for {sleep}s. The exception: {short_msg(error)}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
-def ExchangeNotAvailableHandler(error, sleep=10):
+def exchange_not_available_handler(error, sleep=10):
     """ Prints an error and sleeps """
     caller = inspect.stack()[1].function
     log.error(f'({caller}) The exchange API could not be reached. Sleeping for {sleep}s. The error: {short_msg(error)}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
-def AuthenticationErrorHandler(error, nonce=''):
+def authentication_error_handler(error, nonce=''):
     """ Logs hints about the authentication error """
     caller = inspect.stack()[1].function
     error = short_msg(error)
@@ -47,7 +48,7 @@ def AuthenticationErrorHandler(error, nonce=''):
     log.error(message)
 
 
-def PermissionDeniedHandler(error):
+def permission_denied_handler(error):
     """ Prints error and gives hints about the cause """
     caller = inspect.stack()[1].function
     error = short_msg(error)
@@ -97,7 +98,7 @@ def gather_environ(keys=None) -> dict:
                 log.debug(f"{key.upper()} set to {environs[key]}")
 
         elif key_details['mandatory']:
-            raise KeyError(f'{key.upper()} is mandatory')
+            raise errors.EnvironmentMissing(f'{key.upper()} is mandatory')
         else:
             environs[key] = key_details['default']
             log.debug(f"{key.upper()} is not set. Using default: {key_details['default']}")

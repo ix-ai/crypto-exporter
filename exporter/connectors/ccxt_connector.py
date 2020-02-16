@@ -144,17 +144,17 @@ class CcxtConnector(Connector):
                 self.__fetch_markets(force=True)
                 retry = False
             except ccxt.DDoSProtection as error:
-                utils.DDoSProtectionHandler(error=error)
+                utils.ddos_protection_handler(error=error)
             except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
                 self.settings['enable_authentication'] = False
-                utils.AuthenticationErrorHandler(error=error)
+                utils.authentication_error_handler(error=error)
                 retry = False
             except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
                 self.settings['enable_authentication'] = False
-                utils.PermissionDeniedHandler(error=error)
+                utils.permission_denied_handler(error=error)
                 retry = False
             except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
-                utils.ExchangeNotAvailableHandler(error=error)
+                utils.exchange_not_available_handler(error=error)
         return data
 
     def __process_tickers(self, tickers):

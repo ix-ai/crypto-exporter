@@ -119,7 +119,7 @@ class EtherscanConnector(Connector):
                         result['account']: float(result['balance'])/(1000000000000000000)
                     })
             if req.get('message') == 'NOTOK' and req.get('result') == 'Invalid API Key':
-                utils.AuthenticationErrorHandler(req.get('result'))
+                utils.authentication_error_handler(req.get('result'))
                 self.settings['enable_authentication'] = False
 
             if self.settings['tokens']:
