@@ -12,11 +12,7 @@ log = logging.getLogger('crypto-exporter')
 
 
 class EtherscanConnector(Connector):
-    """
-    The EtherscanConnector class
-
-    Originally written for the ix.ai/etherscan-exporter, this class is in dire need of refactoring
-    """
+    """ The EtherscanConnector class """
 
     settings = {}
     params = {
@@ -56,73 +52,102 @@ class EtherscanConnector(Connector):
         if not self.settings.get('api_key'):
             raise ValueError("Missing api_key")
 
-    def _get_tokens(self):
+    def __load_retry(self, request_data: dict, retries=5):
+        """ Tries up to {retries} times to call the ccxt function and then gives up """
+        data = None
+        retry = True
+        count = 0
+        log.debug(f'Loading {request_data} with {retries} retries')
+        while retry:
+            try:
+                count += 1
+                if count > retries:
+                    log.warning('Maximum number of retries reached. Giving up.')
+                    log.debug(f'Reached max retries while loading {request_data}')
+                else:
+                    request_data.update({
+                        'apikey': self.settings['api_key'],
+                        'module': 'account',
+                        'tag': 'latest',
+                    })
+                    data = requests.get(self.settings['url'], params=request_data).json()
+                retry = False
+            except (
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ReadTimeout,
+            ) as e:
+                log.warning(f"Can't connect to {self.settings['url']}. Exception caught: {utils.short_msg(e)}")
+                time.sleep(1)
+
+            if data:
+                if 'NOTOK' in data.get('message'):
+                    retry = True
+                    if data.get('result') == 'Invalid API Key':
+                        utils.authentication_error_handler(data.get('result'))
+                        self.settings['enable_authentication'] = False
+                        retry = False
+                    data = None
+                    time.sleep(1)
+
+            if data and (data.get('message') == 'OK' or 'OK-' in data.get('message')) and data.get('result'):
+                data = data.get('result')
+
+        return data
+
+    def _get_token_balance_on_account(self, account: str, token: dict) -> float:
+        """
+        gets a specific token on a specific account
+        :param account The Etherium account
+        :param token The token details containing `contract`, `decimals`, `short`
+        :return the balance
+        """
+        request_data = {
+            'action': 'tokenbalance',
+            'contractaddress': token['contract'],
+            'address': account,
+        }
+
+        balance = 0
+        data = self.__load_retry(request_data)
+        if data and int(data) > 0:
+            decimals = 18
+            if token.get('decimals', -1) >= 0:
+                decimals = int(token['decimals'])
+            balance = int(data) / (10**decimals) if decimals > 0 else int(data)
+        return float(balance)
+
+    def retrieve_tokens(self):
         """ Gets the tokens from an account """
         log.debug('Retrieving the tokens')
+        if not self._accounts.get('ETH'):
+            self._accounts.update({'ETH': {}})
         for account in self._accounts['ETH']:
             for token in self.settings['tokens']:
-                log.debug(f"Retrieving the balance for {token['short']} on the account {account}")
-                request_data = {
-                    'module': 'account',
-                    'action': 'tokenbalance',
-                    'contractaddress': token['contract'],
-                    'address': account,
-                    'tag': 'latest',
-                    'apikey': self.settings['api_key'],
-                }
-                decimals = 18
-                if token.get('decimals', -1) >= 0:
-                    decimals = int(token['decimals'])
-                try:
-                    req = requests.get(self.settings['url'], params=request_data).json()
-                except (
-                        requests.exceptions.ConnectionError,
-                        requests.exceptions.ReadTimeout,
-                ) as error:
-                    log.exception(f'Exception caught: {utils.short_msg(error)}')
-                    req = {}
-                if req.get('result') and int(req['result']) > 0:
-                    if not self._accounts.get(token['short']):
-                        self._accounts.update({
-                            token['short']: {}
-                        })
-                    self._accounts[token['short']].update({
-                        account: int(req['result']) / (10**decimals) if decimals > 0 else int(req['result'])
+                if not self._accounts.get(token['short']):
+                    self._accounts.update({
+                        token['short']: {}
                     })
-                time.sleep(1)  # Ensure that we don't get rate limited
+                self._accounts[token['short']].update({
+                    account: self._get_token_balance_on_account(account, token)
+                })
 
     def retrieve_accounts(self):
         """ Gets the current balance for an account """
         if self.settings['enable_authentication']:
             log.debug('Retrieving the account balances')
             request_data = {
-                'module': 'account',
                 'action': 'balancemulti',
                 'address': self.settings['addresses'],
-                'tag': 'latest',
-                'apikey': self.settings['api_key'],
             }
-            try:
-                req = requests.get(self.settings['url'], params=request_data).json()
-            except (
-                    requests.exceptions.ConnectionError,
-                    requests.exceptions.ReadTimeout,
-            ) as error:
-                log.exception(f'Exception caught: {utils.short_msg(error)}')
-                req = {}
-            log.debug(req)
-            if req.get('message') == 'OK' and req.get('result'):
+            data = self.__load_retry(request_data)
+            if data:
                 if not self._accounts.get('ETH'):
                     self._accounts.update({'ETH': {}})
-                for result in req.get('result'):
+                for account in data:
                     self._accounts['ETH'].update({
-                        result['account']: float(result['balance'])/(1000000000000000000)
+                        account['account']: float(account['balance'])/(1000000000000000000)
                     })
-            if req.get('message') == 'NOTOK' and req.get('result') == 'Invalid API Key':
-                utils.authentication_error_handler(req.get('result'))
-                self.settings['enable_authentication'] = False
-
             if self.settings['tokens']:
-                self._get_tokens()
+                self.retrieve_tokens()
         log.debug(f'Accounts: {self._accounts}')
         return self._accounts
