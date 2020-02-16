@@ -88,7 +88,7 @@ if __name__ == '__main__':
         log.warning('Running in TEST mode')
         collector = CryptoCollector(exchange=connector)
         for metric in collector.collect():
-            log.info(f"{metric}")
+            log.debug(f"{metric}")
     else:
         collector = CryptoCollector(exchange=connector)
         REGISTRY.register(collector)

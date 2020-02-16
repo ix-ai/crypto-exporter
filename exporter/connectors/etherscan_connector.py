@@ -58,7 +58,7 @@ class EtherscanConnector(Connector):
 
     def _get_tokens(self):
         """ Gets the tokens from an account """
-        log.info('Retrieving the tokens')
+        log.debug('Retrieving the tokens')
         for account in self._accounts['ETH']:
             for token in self.settings['tokens']:
                 log.debug(f"Retrieving the balance for {token['short']} on the account {account}")
@@ -94,7 +94,7 @@ class EtherscanConnector(Connector):
     def retrieve_accounts(self):
         """ Gets the current balance for an account """
         if self.settings['enable_authentication']:
-            log.info('Retrieving the account balances')
+            log.debug('Retrieving the account balances')
             request_data = {
                 'module': 'account',
                 'action': 'balancemulti',
