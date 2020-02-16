@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+""" Handles the stellar data and communication """
+import logging
+from stellar_sdk.server import Server
+from .connector import Connector
+
+log = logging.getLogger('crypto-exporter')
+
+
+class StellarConnector(Connector):
+    """ The StellarConnector class """
+    settings = {}
+    params = {
+        'addresses': {
+            'key_type': 'list',
+            'default': None,
+            'mandatory': True,
+        },
+        'url': {
+            'key_type': 'string',
+            'default': 'https://horizon.stellar.org/',
+            'mandatory': False,
+        },
+    }
+
+    def __init__(self, **kwargs):
+        self.exchange = 'stellar'
+        self.settings = {
+            'url': kwargs.get("url", self.params['url']['default']),
+            'addresses': kwargs.get('addresses', self.params['addresses']['default']),
+        }
+        self.server = Server(horizon_url=self.settings['url'])
+
+    def retrieve_accounts(self):
+        """ Connects to the Stellar network and retrieves the account information """
+        log.info('Retrieving accounts')
+        for account in self.settings['addresses']:
+            balances = self.server.accounts().account_id(account).call().get('balances')
+            if isinstance(balances, list):
+                for balance in balances:
+                    if balance.get('asset_code'):
+                        currency = balance.get('asset_code')
+                    elif balance.get('asset_type') == 'native':
+                        currency = 'XLM'
+                    else:
+                        currency = balance.get('asset_type')
+                    if currency not in self._accounts:
+                        self._accounts.update({currency: {}})
+                    self._accounts[currency].update({
+                        f'{account}': float(balance.get('balance'))
+                    })
+
+        log.debug(f'Found the following accounts: {self._accounts}')
