@@ -9,6 +9,8 @@ class Connector():
     _tickers = {}
     _accounts = {}
     _transactions = {}
+    params = {}
+    settings = {}
     exchange = None
 
     def get_tickers(self):
@@ -40,3 +42,12 @@ class Connector():
 
     def retrieve_transactions(self):
         """ Triggers the run to retrieve the transactions """
+
+    def redact(self, message: str) -> str:
+        """
+        Redacts all the sensitive information from the message
+        """
+        for param, values in self.params.items():
+            if values.get('redact') and self.settings.get(param):
+                message = message.replace(self.settings.get(param), '***REDACTED***')
+        return message

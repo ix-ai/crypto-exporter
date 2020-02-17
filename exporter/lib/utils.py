@@ -19,24 +19,29 @@ def short_msg(msg, chars=75):
     return (str(msg)[:chars] + '..') if len(str(msg)) > chars else str(msg)
 
 
-def ddos_protection_handler(error, sleep=1):
+def ddos_protection_handler(error, sleep=1, shortify=True):
     """ Prints a warning and sleeps """
     caller = inspect.stack()[1].function
-    log.warning(f'({caller}) Rate limit has been reached. Sleeping for {sleep}s. The exception: {short_msg(error)}')
+    if shortify:
+        error = short_msg(error)
+    log.warning(f'({caller}) Rate limit has been reached. Sleeping for {sleep}s. The exception: {error}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
-def exchange_not_available_handler(error, sleep=10):
+def exchange_not_available_handler(error, sleep=10, shortify=True):
     """ Prints an error and sleeps """
     caller = inspect.stack()[1].function
-    log.error(f'({caller}) The exchange API could not be reached. Sleeping for {sleep}s. The error: {short_msg(error)}')
+    if shortify:
+        error = short_msg(error)
+    log.error(f'({caller}) The exchange API could not be reached. Sleeping for {sleep}s. The error: {error}')
     time.sleep(sleep)  # don't hit the rate limit
 
 
-def authentication_error_handler(error, nonce=''):
+def authentication_error_handler(error, nonce='', shortify=True):
     """ Logs hints about the authentication error """
     caller = inspect.stack()[1].function
-    error = short_msg(error)
+    if shortify:
+        error = short_msg(error)
     message = f"({caller}) Can't authenticate to read the accounts."
     if 'request timestamp expired' in str(error):
         if nonce == 'milliseconds':
@@ -48,11 +53,20 @@ def authentication_error_handler(error, nonce=''):
     log.error(message)
 
 
-def permission_denied_handler(error):
+def permission_denied_handler(error, shortify=True):
     """ Prints error and gives hints about the cause """
     caller = inspect.stack()[1].function
-    error = short_msg(error)
+    if shortify:
+        error = short_msg(error)
     log.error(f'({caller}) The exchange reports "permission denied": {error} Check the API token permissions')
+
+
+def generic_error_handler(error, shortify=True):
+    """ Handler for generic errors """
+    caller = inspect.stack()[1].function
+    if shortify:
+        error = short_msg(error)
+    log.error(f'({caller}) A generic error occurred: {error}')
 
 
 def gather_environ(keys=None) -> dict:

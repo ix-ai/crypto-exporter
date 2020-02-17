@@ -52,10 +52,11 @@ class EtherscanConnector(Connector):
         if not self.settings.get('api_key'):
             raise ValueError("Missing api_key")
 
-    def __load_retry(self, request_data: dict, retries=5):
+    def __load_retry(self, request_data: dict, retries=5, timeout=10):
         """ Tries up to {retries} times to call the ccxt function and then gives up """
         data = None
         retry = True
+        result = None
         count = 0
         log.debug(f'Loading {request_data} with {retries} retries')
         while retry:
@@ -63,36 +64,39 @@ class EtherscanConnector(Connector):
                 count += 1
                 if count > retries:
                     log.warning('Maximum number of retries reached. Giving up.')
-                    log.debug(f'Reached max retries while loading {request_data}')
+                    message = self.redact(f'{request_data}')
+                    log.debug(f'Reached max retries while loading {message}')
                 else:
                     request_data.update({
                         'apikey': self.settings['api_key'],
                         'module': 'account',
                         'tag': 'latest',
                     })
-                    data = requests.get(self.settings['url'], params=request_data).json()
+                    req = requests.get(self.settings['url'], params=request_data, timeout=timeout)
+                    req.raise_for_status()
+                    data = req.json()
                 retry = False
-            except (
-                    requests.exceptions.ConnectionError,
-                    requests.exceptions.ReadTimeout,
-            ) as e:
-                log.warning(f"Can't connect to {self.settings['url']}. Exception caught: {utils.short_msg(e)}")
-                time.sleep(1)
+            except requests.exceptions.Timeout as e:
+                error = self.redact(str(e))
+                utils.exchange_not_available_handler(error=error, shortify=False, sleep=2)
+            except requests.exceptions.RequestException as e:
+                error = self.redact(str(e))
+                log.warning(f"Fatal error connecting to {self.settings['url']}. Exception caught: {error}")
+                retry = False
 
             if data:
+                if (data.get('message') == 'OK' or 'OK-' in data.get('message')) and data.get('result'):
+                    result = data.get('result')
+
                 if 'NOTOK' in data.get('message'):
-                    retry = True
+                    retry = False
                     if data.get('result') == 'Invalid API Key':
-                        utils.authentication_error_handler(data.get('result'))
+                        utils.authentication_error_handler(self.redact(data.get('result')))
                         self.settings['enable_authentication'] = False
-                        retry = False
-                    data = None
-                    time.sleep(1)
+                    else:
+                        utils.generic_error_handler(self.redact(data.get('result')))
 
-            if data and (data.get('message') == 'OK' or 'OK-' in data.get('message')) and data.get('result'):
-                data = data.get('result')
-
-        return data
+        return result
 
     def _get_token_balance_on_account(self, account: str, token: dict) -> float:
         """
