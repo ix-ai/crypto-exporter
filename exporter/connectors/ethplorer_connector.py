@@ -117,9 +117,12 @@ class EthplorerConnector(Connector):
                             break
                         if token_name not in self._accounts:
                             self._accounts.update({token_name: {}})
-
+                        if int(token.get('decimals')) > 0:
+                            balance = int(token['balance']) / (10**int(token.get('decimals')))
+                        else:
+                            balance = int(token['balance'])
                         self._accounts[token_name].update({
-                            address: float(token['balance'])
+                            address: float(balance)
                         })
 
         log.debug(f'Accounts: {self._accounts}')
