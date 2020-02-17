@@ -107,7 +107,7 @@ def gather_environ(keys=None) -> dict:
                     environs[key] = key_details['default']
 
             if key_details.get('redact'):
-                log.debug(f"{key.upper()} set to ***redacted***")
+                log.debug(f"{key.upper()} set to ***REDACTED***")
             else:
                 log.debug(f"{key.upper()} set to {environs[key]}")
 

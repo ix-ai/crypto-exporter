@@ -129,6 +129,10 @@ This option is disabled by default, since there aren't many exchanges that suppo
 The crypto-exporter also supports, in addition to the exchanges, reporting the account balance directly from (some) blockchains.
 
 ### ETH and ERC20 Tokens
+
+There are two different APIs that can be used for this: [etherscan.io](https://etherscan.io/apis) and [ethplorer.io](https://ethplorer.io/). The advantage of **ethplorer.io** is that it provides all the tokens per default, without having to manually supply the technical information about them.
+
+#### etherscan.io
 Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io API](https://etherscan.io/apis). The following environment variables are supported:
 
 | **Variable**             | **Default**                    | **Mandatory** | **Description**  |
@@ -141,7 +145,7 @@ Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io AP
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
-#### TOKENS Variable
+##### TOKENS Variable
 Example:
 ```
 TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel","short":"DAN","decimals": 10}]'
@@ -150,6 +154,19 @@ TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel
 The technical information can be found on [etherscan.io](https://etherscan.io/token/0x9b70740e708a083c6ff38df52297020f5dfaa5ee#readContract)
 
 **WARNING** The token balance will be retrieved for **every** address configured under `ADDRESSES`.
+
+#### ethplorer.io
+
+Support for ETH and ERC20 Tokens is implemented by querying the [ethplorer.io API](https://ethplorer.io/). The following environment variables are supported:
+
+| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
+|:-------------------------|:------------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                              | **YES**       | Set this to `ethplorer` |
+| `API_KEY`                | `freekey`                      | NO            | Set this to your Ethplorer API key |
+| `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
+| `URL`                    | `https://api.ethplorer.io`     | NO            | The base URL to query |
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
 ### BTC
 Support for the BTC account balance is implemented by querying the [blockchain.info API](https://www.blockchain.com/api). The following environment variables are supported:

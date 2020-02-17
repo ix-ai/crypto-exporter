@@ -63,6 +63,10 @@ if __name__ == '__main__':
             from .connectors.etherscan_connector import EtherscanConnector
             options.update(utils.gather_environ(EtherscanConnector.params))
             connector = EtherscanConnector(**options)
+        elif exchange == 'ethplorer':
+            from .connectors.ethplorer_connector import EthplorerConnector
+            options.update(utils.gather_environ(EthplorerConnector.params))
+            connector = EthplorerConnector(**options)
         elif exchange == 'blockchain':
             from .connectors.blockchain_connector import BlockchainConnector
             options.update(utils.gather_environ(BlockchainConnector.params))
