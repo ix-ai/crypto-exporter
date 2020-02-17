@@ -3,7 +3,6 @@
 """ Handles the etherscan data and communication """
 
 import logging
-import time
 import requests
 from ..lib import utils
 from .connector import Connector
