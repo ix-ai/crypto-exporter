@@ -102,7 +102,7 @@ class EthplorerConnector(Connector):
         for address in self.settings['addresses']:
             if not self.settings['enable_authentication']:
                 return {}
-            data = self.__load_retry(address)
+            data = self.__load_retry(address, retries=2)
             if data:
                 if data.get('ETH'):
                     self._accounts['ETH'].update({
