@@ -34,7 +34,7 @@ class EthplorerConnector(Connector):
     }
 
     def __init__(self, **kwargs):
-        self.exchange = 'ethereum'
+        self.exchange = 'ethplorer'
         for param, values in self.params.items():
             self.settings.update({param: kwargs.get(param, values['default'])})
 
