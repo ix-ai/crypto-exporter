@@ -78,6 +78,8 @@ class EthplorerConnector(Connector):
                     utils.authentication_error_handler(error)
                     self.settings['enable_authentication'] = False
                     retry = False
+                if e.response.status_code == 429:
+                    utils.ddos_protection_handler(error=error, sleep=5, shortify=False)
                 else:
                     utils.generic_error_handler(self.redact(error))
             except requests.exceptions.RequestException as e:
