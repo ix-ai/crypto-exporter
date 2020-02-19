@@ -130,7 +130,7 @@ The crypto-exporter also supports, in addition to the exchanges, reporting the a
 
 ### ETH and ERC20 Tokens
 
-There are two different APIs that can be used for this: [etherscan.io](https://etherscan.io/apis) and [ethplorer.io](https://ethplorer.io/). The advantage of **ethplorer.io** is that it provides all the tokens per default, without having to manually supply the technical information about them.
+There are two different APIs that can be used for this: [etherscan.io](https://etherscan.io/apis), [ethplorer.io](https://ethplorer.io/) and [blockscout.com](https://blockscout.com).
 
 #### etherscan.io
 Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io API](https://etherscan.io/apis). The following environment variables are supported:
@@ -165,6 +165,18 @@ Support for ETH and ERC20 Tokens is implemented by querying the [ethplorer.io AP
 | `API_KEY`                | `freekey`                      | NO            | Set this to your Ethplorer API key |
 | `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
 | `URL`                    | `https://api.ethplorer.io`     | NO            | The base URL to query |
+
+Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+
+#### blockscout.com
+
+Support for ETH and ERC20 Tokens is implemented by querying the [blockscout.com API](https://blockscout.com/eth/mainnet/api_docs). The following environment variables are supported:
+
+| **Variable**             | **Default**                                  | **Mandatory** | **Description**  |
+|:-------------------------|:--------------------------------------------:|:-------------:|:-----------------|
+| `EXCHANGE`               | -                                            | **YES**       | Set this to `blockscout` |
+| `ADDRESSES`              | -                                            | **YES**       | A comma separated list of ETH addresses |
+| `URL`                    | `https://blockscout.com/eth/mainnet/api`     | NO            | The base URL to query |
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
