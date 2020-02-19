@@ -30,6 +30,7 @@ class StellarConnector(Connector):
             'addresses': kwargs.get('addresses', self.params['addresses']['default']),
         }
         self.server = Server(horizon_url=self.settings['url'])
+        super().__init__()
 
     def retrieve_accounts(self):
         """ Connects to the Stellar network and retrieves the account information """

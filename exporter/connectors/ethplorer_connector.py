@@ -42,6 +42,7 @@ class EthplorerConnector(Connector):
                 raise ValueError(f"Missing {param}")
 
         self.settings.update({'enable_authentication': True})
+        super().__init__()
 
     def prepare_request(self, request_data: dict) -> dict:
         """ Checks the request_data and adds the missing keys """

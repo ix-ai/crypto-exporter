@@ -47,6 +47,7 @@ class EtherscanConnector(Connector):
             'tokens': kwargs.get('tokens', self.params['tokens']['default']),
             'enable_authentication': True
         }
+        super().__init__()
 
         if not self.settings.get('api_key'):
             raise ValueError("Missing api_key")

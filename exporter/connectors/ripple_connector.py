@@ -32,6 +32,7 @@ class RippleConnector(Connector):
             'url': kwargs.get("url", self.params['url']['default']),
             'addresses': kwargs.get('addresses', self.params['addresses']['default']),
         }
+        super().__init__()
 
     def retrieve_accounts(self):
         """ Connects to the ripple API and retrieves the account information """

@@ -32,6 +32,7 @@ class BlockchainConnector(Connector):
             'url': kwargs.get("url", 'https://blockchain.info'),
             'addresses': kwargs.get('addresses', []),
         }
+        super().__init__()
 
     def retrieve_accounts(self):
         """ Connects to the blockchain API and retrieves the account information """
