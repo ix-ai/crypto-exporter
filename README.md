@@ -4,6 +4,7 @@
 [![Docker Stars](https://img.shields.io/docker/stars/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Gitlab Project](https://img.shields.io/badge/GitLab-Project-554488.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fix-ai%2Fcrypto-exporter.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fix-ai%2Fcrypto-exporter?ref=badge_shield)
 
 Prometheus exporter, written in python, for different crypto exchanges
 
@@ -308,3 +309,7 @@ Starting with version v0.5.1, the images are multi-arch, with builds for amd64, 
 * GitLab: https://gitlab.com/ix.ai/crypto-exporter
 * GitHub: https://github.com/ix-ai/crypto-exporter
 * Docker Hub: https://hub.docker.com/r/ixdotai/crypto-exporter
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fix-ai%2Fcrypto-exporter.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fix-ai%2Fcrypto-exporter?ref=badge_large)
