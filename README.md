@@ -3,11 +3,17 @@
 [![Pipeline Status](https://gitlab.com/ix.ai/crypto-exporter/badges/master/pipeline.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
 [![Docker Stars](https://img.shields.io/docker/stars/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Image Layers](https://images.microbadger.com/badges/image/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Latest Version](https://images.microbadger.com/badges/version/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Gitlab Project](https://img.shields.io/badge/GitLab-Project-554488.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
 
 Prometheus exporter, written in python, for different crypto exchanges
 
 **Warning**: This documentation applies for version `v1.x.x`.
+
+## Documentation
+
+Check out the [docs/](docs/) folder.
 
 ## Features
 
