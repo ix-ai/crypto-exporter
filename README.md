@@ -15,9 +15,13 @@ Prometheus exporter, written in python, for different crypto exchanges
 
 Check out the [docs/](docs/) folder.
 
+## Contributing
+
+Please read [how to contribute](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Features
 
-The crypto-exporter generates three sets of metrics. You can also get only the `account_balance` for off-exchange accounts (see below: [Off-Exchange Balances](#off-exchange-balances))
+The crypto-exporter generates three sets of metrics. You can also get only the `account_balance` for off-exchange accounts (see: [Off-Exchange Balances](docs/off-exchange-balances))
 
 ### exchange_rate
 The exchange rates for the symbols traded. Use this to get the tickers.
@@ -102,6 +106,8 @@ docker run --rm -it -p 9999:9999 \
 | `GELF_PORT`              | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
 | `PORT`                   | `9188`         | NO            | The port for prometheus metrics |
 
+**Note**: Look at [Off-Exchange Balances](docs/off-exchange-balances) for additional supported environment variables.
+
 ### SYMBOLS and REFERENCE_CURRENCIES
 
 Since not all exchanges support getting the ticker with one request (`coinbase`, `coinbasepro`, `bitstamp`), crypto-exporter has to request for every traded pair the exchange rate. This takes a lot of time, especially if there are a lot of pairs traded (>50 minutes for one run with coinbase).
@@ -130,99 +136,6 @@ transactions_total{currency="XLM",exchange="kraken",reference_currency="EUR",typ
 
 This option is disabled by default, since there aren't many exchanges that support it and it increases the time, by querying the exchange. So far, it has been tested successfully with `coinbase` and `kraken`.
 
-## Off-Exchange Balances
-
-The crypto-exporter also supports, in addition to the exchanges, reporting the account balance directly from (some) blockchains.
-
-### ETH and ERC20 Tokens
-
-There are two different APIs that can be used for this: [etherscan.io](https://etherscan.io/apis), [ethplorer.io](https://ethplorer.io/) and [blockscout.com](https://blockscout.com).
-
-#### etherscan.io
-Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io API](https://etherscan.io/apis). The following environment variables are supported:
-
-| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
-|:-------------------------|:------------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                              | **YES**       | Set this to `etherscan` |
-| `API_KEY`                | -                              | **YES**       | Set this to your Etherscan API key |
-| `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
-| `TOKENS`                 | -                              | NO            | A JSON object with the list of tokens to export (see [below](#tokens-variable)) |
-| `URL`                    | `https://api.etherscan.io/api` | NO            | The base URL to query |
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
-##### TOKENS Variable
-Example:
-```
-TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel","short":"DAN","decimals": 10}]'
-```
-
-The technical information can be found on [etherscan.io](https://etherscan.io/token/0x9b70740e708a083c6ff38df52297020f5dfaa5ee#readContract)
-
-**WARNING** The token balance will be retrieved for **every** address configured under `ADDRESSES`.
-
-#### ethplorer.io
-
-Support for ETH and ERC20 Tokens is implemented by querying the [ethplorer.io API](https://ethplorer.io/). The following environment variables are supported:
-
-| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
-|:-------------------------|:------------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                              | **YES**       | Set this to `ethplorer` |
-| `API_KEY`                | `freekey`                      | NO            | Set this to your Ethplorer API key |
-| `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
-| `URL`                    | `https://api.ethplorer.io`     | NO            | The base URL to query |
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
-#### blockscout.com
-
-Support for ETH and ERC20 Tokens is implemented by querying the [blockscout.com API](https://blockscout.com/eth/mainnet/api_docs). The following environment variables are supported:
-
-| **Variable**             | **Default**                                  | **Mandatory** | **Description**  |
-|:-------------------------|:--------------------------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                                            | **YES**       | Set this to `blockscout` |
-| `ADDRESSES`              | -                                            | **YES**       | A comma separated list of ETH addresses |
-| `URL`                    | `https://blockscout.com/eth/mainnet/api`     | NO            | The base URL to query |
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
-### BTC
-Support for the BTC account balance is implemented by querying the [blockchain.info API](https://www.blockchain.com/api). The following environment variables are supported:
-
-| **Variable**             | **Default**               | **Mandatory** | **Description**  |
-|:-------------------------|:-------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                         | **YES**       | Set this to `blockchain` |
-| `ADDRESSES`              | -                         | **YES**       | A comma separated list of BTC addresses |
-| `URL`                    | `https://blockchain.info` | NO            | The base URL to query |
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
-### Ripple
-Support for the Ripple account balance is implemented by querying the [ripple.com API](https://data.ripple.com). The following environment variables are supported:
-
-| **Variable**             | **Default**               | **Mandatory** | **Description**  |
-|:-------------------------|:-------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                         | **YES**       | Set this to `ripple` |
-| `ADDRESSES`              | -                         | **YES**       | A comma separated list of Ripple accounts |
-| `URL`                    | `https://data.ripple.com` | NO            | The base URL to query |
-
-Since you can have multiple currencies on the Ripple Blockchain, all of them are exported.
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
-### Stellar
-Support for the Stellar account balance is implemented by querying the [stellar horizon server](https://horizon.stellar.org/). The following environment variables are supported:
-
-| **Variable**             | **Default**                    | **Mandatory** | **Description**  |
-|:-------------------------|:------------------------------:|:-------------:|:-----------------|
-| `EXCHANGE`               | -                              | **YES**       | Set this to `stellar` |
-| `ADDRESSES`              | -                              | **YES**       | A comma separated list of Ripple accounts |
-| `URL`                    | `https://horizon.stellar.org/` | NO            | The base URL to query |
-
-Since you can have multiple currencies on the Stellar Blockchain, all of them are exported.
-
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
-
 ## Tested exchanges
 * coinbase
 * coinbasepro
@@ -238,70 +151,6 @@ Limited tests (without API credentials) have been done with:
 * hitbtc
 
 All other exchanges supported by [ccxt](https://github.com/ccxt/ccxt) should work as well, however they are untested.
-
-## docker-compose or stack example
-```yml
-version: '3.7'
-
-services:
-  binance:
-    image: ixdotai/crypto-exporter:latest
-    networks:
-      - exporters
-    environment:
-      EXCHANGE: binance
-      API_KEY: your_api_key
-      API_SECRET: your_api_secret
-      LOGLEVEL: DEBUG
-  bitfinex:
-    image: registry.gitlab.com/ix.ai/crypto-exporter:latest
-    networks:
-      - exporters
-    environment:
-      EXCHANGE: bitfinex
-      API_KEY: your_api_key
-      API_SECRET: your_api_secret
-      LOGLEVEL: WARNING
-  coinbasepro:
-    image: ixdotai/crypto-exporter:v1.0.0
-    networks:
-      - exporters
-    environment:
-      EXCHANGE: coinbasepro
-      REFERENCE_CURRENCIES: USD,EUR,BTC
-      SYMBOLS: LTC/BTC,ETH/BTC
-      NONCE: seconds
-networks:
-  exporters: {}
-```
-
-Prometheus configuration with DNS service discovery:
-
-```yml
-scrape_configs:
-- job_name: 'crypto-exporters'
-  scrape_interval: 60s
-  scrape_timeout: 60s
-  metrics_path: /
-  scheme: http
-  dns_sd_configs:
-  - port: 9188
-  - names:
-    - tasks.binance
-    - tasks.bitfinex
-- job_name: 'coinbasepro-exporter'
-  scrape_interval: 120s
-  scrape_timeout: 120s
-  metrics_path: /
-  dns_sd_configs:
-  - port: 9188
-  - names:
-    - tasks.coinbasepro
-```
-
-Make sure that your prometheus server is able to reach the network set for the crypto-exporter.
-
-**Warning**: Some exchanges (notably: coinbasepro) need more than 60s to scrape, especially if you don't configure `REFERENCE_CURRENCIES` or `SYMBOLS`.
 
 ## Tags and Arch
 
