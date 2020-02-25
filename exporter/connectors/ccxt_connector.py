@@ -145,15 +145,15 @@ class CcxtConnector(Connector):
                 retry = False
             except ccxt.DDoSProtection as error:
                 utils.ddos_protection_handler(error=error)
-            except ccxt.AuthenticationError as error:  # pylint: disable=duplicate-except
-                self.settings['enable_authentication'] = False
-                utils.authentication_error_handler(error=error)
-                retry = False
-            except ccxt.PermissionDenied as error:  # pylint: disable=duplicate-except
+            except ccxt.PermissionDenied as error:
                 self.settings['enable_authentication'] = False
                 utils.permission_denied_handler(error=error)
                 retry = False
-            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout, ccxt.ExchangeError) as error:  # pylint: disable=duplicate-except
+            except ccxt.AuthenticationError as error:
+                self.settings['enable_authentication'] = False
+                utils.authentication_error_handler(error=error)
+                retry = False
+            except (ccxt.ExchangeNotAvailable, ccxt.RequestTimeout, ccxt.ExchangeError) as error:
                 utils.exchange_not_available_handler(error=error)
         return data
 
