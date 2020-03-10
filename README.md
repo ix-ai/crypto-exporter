@@ -3,8 +3,8 @@
 [![Pipeline Status](https://gitlab.com/ix.ai/crypto-exporter/badges/master/pipeline.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
 [![Docker Stars](https://img.shields.io/docker/stars/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
-[![Image Layers](https://images.microbadger.com/badges/image/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
-[![Latest Version](https://images.microbadger.com/badges/version/ixdotai/crypto-exporter.svg)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Docker Image Version (latest)](https://img.shields.io/docker/v/ixdotai/crypto-exporter/latest)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
+[![Docker Image Size (latest)](https://img.shields.io/docker/image-size/ixdotai/crypto-exporter/latest)](https://hub.docker.com/r/ixdotai/crypto-exporter/)
 [![Gitlab Project](https://img.shields.io/badge/GitLab-Project-554488.svg)](https://gitlab.com/ix.ai/crypto-exporter/)
 
 Prometheus exporter, written in python, for different crypto exchanges
