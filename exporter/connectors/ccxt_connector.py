@@ -123,7 +123,7 @@ class CcxtConnector(Connector):
                 self.settings['enable_authentication'] = True
                 log.debug('Authentication is configured')
 
-    def __load_retry(self, method, *args, retries=5, **kwargs):
+    def __load_retry(self, method, *args, retries=3, **kwargs):
         """ Tries up to {retries} times to call the ccxt function and then gives up """
         data = None
         retry = True
