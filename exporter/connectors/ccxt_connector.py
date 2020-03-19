@@ -248,7 +248,9 @@ class CcxtConnector(Connector):
         if kw.get('end'):
             params.update({'end': kw['end']})
 
-        ledger += self.__load_retry(method='fetch_ledger', params=params)
+        fetched_ledger = self.__load_retry(method='fetch_ledger', params=params)
+        if fetched_ledger:
+            ledger = fetched_ledger
 
         if (
                 self.__exchange.last_json_response.get('pagination')
