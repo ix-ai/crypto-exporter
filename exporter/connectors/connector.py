@@ -9,7 +9,13 @@ class Connector():
     _tickers = {}
     _accounts = {}
     _transactions = {}
-    params = {}
+    params = {
+        'timeout': {
+            'key_type': 'int',
+            'default': 10,  # in seconds
+            'mandatory': False,
+        },
+    }
     settings = {}
     exchange = None
 

@@ -26,12 +26,10 @@ class BlockchainConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'blockchain'
-        self.settings = {
-            'url': kwargs.get("url", 'https://blockchain.info'),
-            'addresses': kwargs.get('addresses', []),
-        }
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         super().__init__()
 
     def retrieve_accounts(self):
@@ -45,7 +43,7 @@ class BlockchainConnector(Connector):
         }
 
         try:
-            r = requests.get(url, params=request_data).json()
+            r = requests.get(url, params=request_data, timeout=self.settings['timeout']).json()
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ReadTimeout

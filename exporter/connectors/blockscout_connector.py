@@ -27,15 +27,10 @@ class BlockscoutConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'blockscout'
-        for param, values in self.params.items():
-            self.settings.update({param: kwargs.get(param, values['default'])})
-
-            if values.get('mandatory') and not self.settings.get(param):
-                raise ValueError(f"Missing {param}")
-
-        self.settings.update({'enable_authentication': True})
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         super().__init__()
 
     def prepare_request(self, request_data: dict) -> dict:
@@ -46,7 +41,7 @@ class BlockscoutConnector(Connector):
             request_data.update({'module': 'account'})
         return request_data
 
-    def __load_retry(self, request_data: dict, retries=5, timeout=1):
+    def __load_retry(self, request_data: dict, retries=5):
         """ Tries up to {retries} times to call the api and then gives up """
         response = None
         retry = True
@@ -62,7 +57,7 @@ class BlockscoutConnector(Connector):
                     log.warning('Maximum number of retries reached. Giving up.')
                     log.debug(f'Reached max retries while loading {url}')
                 else:
-                    req = requests.get(url, params=request_data, timeout=timeout)
+                    req = requests.get(url, params=request_data, timeout=self.settings['timeout'])
                     req.raise_for_status()
                     response = req.json()
                 retry = False
@@ -71,10 +66,6 @@ class BlockscoutConnector(Connector):
                 utils.exchange_not_available_handler(error=error, shortify=False, sleep=2)
             except requests.exceptions.HTTPError as e:
                 error = self.redact(str(e))
-                if e.response.status_code == 403:
-                    utils.authentication_error_handler(error)
-                    self.settings['enable_authentication'] = False
-                    retry = False
                 if e.response.status_code == 429:
                     utils.ddos_protection_handler(error=error, sleep=1, shortify=False)
                 else:

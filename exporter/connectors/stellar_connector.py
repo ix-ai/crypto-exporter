@@ -2,6 +2,7 @@
 """ Handles the stellar data and communication """
 import logging
 from stellar_sdk.server import Server
+from ..lib import utils
 from .connector import Connector
 
 log = logging.getLogger('crypto-exporter')
@@ -23,12 +24,10 @@ class StellarConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'stellar'
-        self.settings = {
-            'url': kwargs.get("url", self.params['url']['default']),
-            'addresses': kwargs.get('addresses', self.params['addresses']['default']),
-        }
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         self.server = Server(horizon_url=self.settings['url'])
         super().__init__()
 
