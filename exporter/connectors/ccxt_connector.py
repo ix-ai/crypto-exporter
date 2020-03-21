@@ -72,37 +72,19 @@ class CcxtConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
-        # Mandatory attributes
-        self.exchange = kwargs['exchange']
-        self.settings['nonce'] = kwargs.get('nonce', self.params['nonce']['default'])
-        __exchange = getattr(ccxt, self.exchange)
-
-        exchange_options = {
-            'nonce': getattr(__exchange, self.settings['nonce']),
-            'enableRateLimit': True,
-        }
-        if kwargs.get('default_exchange_type'):
-            exchange_options.update({'defaultType': kwargs['default_exchange_type']})
-        self.__exchange = __exchange(exchange_options)
-
-        # Settable defaults
-        self.settings['enable_tickers'] = kwargs.get('enable_tickers', self.params['enable_tickers']['default'])
-        self.settings['enable_transactions'] = kwargs.get(
-            'enable_transactions',
-            self.params['enable_transactions']['default']
-        )
-        self.settings['symbols'] = kwargs.get('symbols')
-        self.settings['reference_currencies'] = kwargs.get('reference_currencies')
-
-        # Authentication data
-        self.settings['api_key'] = kwargs.get('api_key')
-        self.settings['api_secret'] = kwargs.get('api_secret')
-        self.settings['api_pass'] = kwargs.get('api_pass')
-        self.settings['api_uid'] = kwargs.get('api_uid')
-
-        # Internal settings and lists
+    def __init__(self, exchange):
+        self.exchange = exchange
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         self.settings['enable_authentication'] = None
+        __exchange = getattr(ccxt, self.exchange)
+        exchange_options = {
+            'enableRateLimit': True,
+            'nonce': getattr(__exchange, self.settings['nonce']),
+            'defaultType': self.settings['default_exchange_type'],
+            'timeout': self.settings['timeout'] * 1000,  # ccxt expects the timeout in milliseconds
+        }
+        self.__exchange = __exchange(exchange_options)
         self.__markets = None
         super().__init__()
 

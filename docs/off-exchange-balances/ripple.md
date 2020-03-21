@@ -9,4 +9,4 @@ Support for the Ripple account balance is implemented by querying the [ripple.co
 
 Since you can have multiple currencies on the Ripple Blockchain, all of them are exported.
 
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+Additionally, the global variables `TIMEOUT`, `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.

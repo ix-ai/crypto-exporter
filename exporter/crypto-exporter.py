@@ -61,32 +61,25 @@ if __name__ == '__main__':
     try:
         if exchange == 'etherscan':
             from .connectors.etherscan_connector import EtherscanConnector
-            options.update(utils.gather_environ(EtherscanConnector.params))
-            connector = EtherscanConnector(**options)
+            connector = EtherscanConnector()
         elif exchange == 'ethplorer':
             from .connectors.ethplorer_connector import EthplorerConnector
-            options.update(utils.gather_environ(EthplorerConnector.params))
-            connector = EthplorerConnector(**options)
+            connector = EthplorerConnector()
         elif exchange == 'blockscout':
             from .connectors.blockscout_connector import BlockscoutConnector
-            options.update(utils.gather_environ(BlockscoutConnector.params))
-            connector = BlockscoutConnector(**options)
+            connector = BlockscoutConnector()
         elif exchange == 'blockchain':
             from .connectors.blockchain_connector import BlockchainConnector
-            options.update(utils.gather_environ(BlockchainConnector.params))
-            connector = BlockchainConnector(**options)
+            connector = BlockchainConnector()
         elif exchange == 'ripple':
             from .connectors.ripple_connector import RippleConnector
-            options.update(utils.gather_environ(RippleConnector.params))
-            connector = RippleConnector(**options)
+            connector = RippleConnector()
         elif exchange == 'stellar':
             from .connectors.stellar_connector import StellarConnector
-            options.update(utils.gather_environ(StellarConnector.params))
-            connector = StellarConnector(**options)
+            connector = StellarConnector()
         else:
             from .connectors.ccxt_connector import CcxtConnector
-            options.update(utils.gather_environ(CcxtConnector.params))
-            connector = CcxtConnector(exchange=exchange, **options)
+            connector = CcxtConnector(exchange=exchange)
     except errors.EnvironmentMissing as e:
         log.error(f'{e}')
         sys.exit()

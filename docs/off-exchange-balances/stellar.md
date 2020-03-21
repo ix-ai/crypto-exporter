@@ -10,3 +10,5 @@ Support for the Stellar account balance is implemented by querying the [stellar 
 Since you can have multiple currencies on the Stellar Blockchain, all of them are exported.
 
 Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+
+**Note**: `TIMEOUT` is ignored.

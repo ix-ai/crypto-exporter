@@ -33,14 +33,10 @@ class EthplorerConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'ethplorer'
-        for param, values in self.params.items():
-            self.settings.update({param: kwargs.get(param, values['default'])})
-
-            if values.get('mandatory') and not self.settings.get(param):
-                raise ValueError(f"Missing {param}")
-
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         self.settings.update({'enable_authentication': True})
         super().__init__()
 
@@ -50,7 +46,7 @@ class EthplorerConnector(Connector):
             request_data.update({'apiKey': self.settings['api_key']})
         return request_data
 
-    def __load_retry(self, account, retries=5, timeout=10):
+    def __load_retry(self, account, retries=5):
         """ Tries up to {retries} times to call the api and then gives up """
         response = None
         retry = True
@@ -66,7 +62,7 @@ class EthplorerConnector(Connector):
                     log.warning('Maximum number of retries reached. Giving up.')
                     log.debug(f'Reached max retries while loading {url}')
                 else:
-                    req = requests.get(url, params=request_data, timeout=timeout)
+                    req = requests.get(url, params=request_data, timeout=self.settings['timeout'])
                     req.raise_for_status()
                     response = req.json()
                 retry = False

@@ -7,4 +7,4 @@ Support for the BTC account balance is implemented by querying the [blockchain.i
 | `ADDRESSES`              | -                         | **YES**       | A comma separated list of BTC addresses |
 | `URL`                    | `https://blockchain.info` | NO            | The base URL to query |
 
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+Additionally, the global variables `TIMEOUT`, `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.

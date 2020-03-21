@@ -9,7 +9,7 @@ Support for ETH and ERC20 Tokens is implemented by querying the [etherscan.io AP
 | `TOKENS`                 | -                              | NO            | A JSON object with the list of tokens to export (see [below](#tokens-variable)) |
 | `URL`                    | `https://api.etherscan.io/api` | NO            | The base URL to query |
 
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+Additionally, the global variables `TIMEOUT`, `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
 
 ## TOKENS Variable
 Example:

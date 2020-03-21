@@ -26,12 +26,10 @@ class RippleConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'ripple'
-        self.settings = {
-            'url': kwargs.get("url", self.params['url']['default']),
-            'addresses': kwargs.get('addresses', self.params['addresses']['default']),
-        }
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
         super().__init__()
 
     def retrieve_accounts(self):
@@ -42,7 +40,7 @@ class RippleConnector(Connector):
             url = f"{self.settings['url']}/v2/accounts/{account}/balances"
             r = {}
             try:
-                r = requests.get(url).json()
+                r = requests.get(url, timeout=self.settings['timeout']).json()
             except (
                     requests.exceptions.ConnectionError,
                     requests.exceptions.ReadTimeout,

@@ -38,21 +38,14 @@ class EtherscanConnector(Connector):
         },
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.exchange = 'etherscan'
-        self.settings = {
-            'api_key': kwargs.get('api_key'),
-            'url': kwargs.get("url", self.params['url']['default']),
-            'addresses': kwargs.get('addresses', self.params['addresses']['default']),
-            'tokens': kwargs.get('tokens', self.params['tokens']['default']),
-            'enable_authentication': True
-        }
+        self.params.update(super().params)  # merge with the global params
+        self.settings = utils.gather_environ(self.params)
+        self.settings.update({'enable_authentication': True})
         super().__init__()
 
-        if not self.settings.get('api_key'):
-            raise ValueError("Missing api_key")
-
-    def __load_retry(self, request_data: dict, retries=5, timeout=10):
+    def __load_retry(self, request_data: dict, retries=5):
         """ Tries up to {retries} times to call the ccxt function and then gives up """
         data = None
         retry = True
@@ -72,7 +65,7 @@ class EtherscanConnector(Connector):
                         'module': 'account',
                         'tag': 'latest',
                     })
-                    req = requests.get(self.settings['url'], params=request_data, timeout=timeout)
+                    req = requests.get(self.settings['url'], params=request_data, timeout=self.settings['timeout'])
                     req.raise_for_status()
                     data = req.json()
                 retry = False

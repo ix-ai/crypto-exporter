@@ -9,4 +9,4 @@ Support for ETH and ERC20 Tokens is implemented by querying the [ethplorer.io AP
 | `ADDRESSES`              | -                              | **YES**       | A comma separated list of ETH addresses |
 | `URL`                    | `https://api.ethplorer.io`     | NO            | The base URL to query |
 
-Additionally, the global variables `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
+Additionally, the global variables `TIMEOUT`, `LOGLEVEL`, `GELF_HOST`, `GELF_PORT` and `PORT` are supported.
