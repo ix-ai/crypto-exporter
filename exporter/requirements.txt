@@ -1,4 +1,4 @@
-ccxt==1.26.51
+ccxt==1.29.45
 prometheus_client==0.7.1
 requests==2.22.0
 pygelf==0.3.6
