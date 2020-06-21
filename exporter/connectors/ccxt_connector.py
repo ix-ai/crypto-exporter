@@ -235,7 +235,7 @@ class CcxtConnector(Connector):
             ledger = fetched_ledger
 
         if (
-                self.__exchange.hasattr('last_json_response')
+                hasattr(self.__exchange, 'last_json_response')
                 and self.__exchange.last_json_response.get('pagination')
                 and self.__exchange.last_json_response['pagination']['next_starting_after']
         ):
@@ -244,7 +244,7 @@ class CcxtConnector(Connector):
                 starting_after=self.__exchange.last_json_response['pagination']['next_starting_after'],
             )
         if (
-                self.__exchange.hasattr('last_json_response')
+                hasattr(self.__exchange, 'last_json_response')
                 and self.__exchange.last_json_response.get('result')
                 and self.__exchange.last_json_response['result'].get('count')
                 and int(self.__exchange.last_json_response['result']['count']) > len(ledger)
