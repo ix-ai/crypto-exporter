@@ -2,7 +2,4 @@ ccxt==1.30.25
 prometheus_client==0.8.0
 requests==2.23.0
 pygelf==0.3.6
-stellar-base==1.1.2.0
-stellar-sdk==2.5.2
-toml>=0.10.0
-pbkdf2
+stellar-sdk==2.6.1
