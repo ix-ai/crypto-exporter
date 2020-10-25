@@ -1,28 +1,49 @@
+FROM alpine:latest as builder
+COPY exporter/requirements.txt /work/exporter/requirements.txt
+RUN set -xeu; \
+    mkdir -p /work/wheels; \
+    apk add \
+      python3-dev \
+      openssl-dev \
+      gcc \
+      musl-dev \
+      libffi-dev \
+      make \
+    ; \
+    python3 -m ensurepip; \
+    pip3 install -U \
+      pip \
+      wheel \
+    ;
+RUN pip3 --use-feature=2020-resolver wheel -r /work/exporter/requirements.txt -w /work/wheels
+COPY exporter /work/exporter/
+
 FROM alpine:latest
-LABEL maintainer="docker@ix.ai" \
-      ai.ix.repository="ix.ai/crypto-exporter"
+LABEL maintainer="docker@ix.ai"
+LABEL ai.ix.repository="ix.ai/crypto-exporter"
 
-COPY exporter/requirements.txt /exporter/requirements.txt
+COPY --from=builder /work /
 
-RUN apk --no-cache upgrade && \
-    apk add --no-cache py3-prometheus-client \
-                       py3-requests \
-                       py3-cryptography \
-                       py3-multidict \
-                       py3-aiohttp \
-                       py3-pip \
-                       py3-toml \
-                       py3-numpy \
-                       py3-pynacl \
-                       py3-urllib3 \
-                       py3-yarl && \
-    apk add --no-cache python3-dev gcc musl-dev libffi-dev make && \
-    pip3 install --no-cache-dir -r exporter/requirements.txt && \
-    apk del --purge --no-cache gcc musl-dev python3-dev py3-pip libffi-dev
+RUN set -xeu; \
+    ls -lashi /wheels; \
+    apk add --no-cache python3; \
+    python3 -m ensurepip; \
+    pip3 install --no-cache-dir -U pip;\
+    pip3 install \
+      --no-index \
+      --use-feature=2020-resolver \
+      --no-cache-dir \
+      --find-links /wheels \
+      --requirement /exporter/requirements.txt \
+    ; \
+    rm -rf /wheels; \
+    addgroup crypto-exporter; \
+    adduser -G crypto-exporter -D -H crypto-exporter
 
-COPY exporter/ /exporter
-COPY crypto-exporter.sh /usr/local/bin/crypto-exporter.sh
+COPY crypto-exporter /usr/local/bin/crypto-exporter
+
+USER crypto-exporter:crypto-exporter
 
 EXPOSE 9188
 
-ENTRYPOINT ["/usr/local/bin/crypto-exporter.sh"]
+ENTRYPOINT ["/usr/local/bin/crypto-exporter"]
