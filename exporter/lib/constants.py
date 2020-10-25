@@ -4,6 +4,6 @@
 
 WARN_TICKER_SLOW_LOAD = 'Exchange doesn\'t support fetching all the tickers in one go. Loading them individually.'
 
-# These get set at build time
-VERSION = None
-BUILD = None
+VERSION = 'v1.7.9'
+# Gets set automatically at build time
+BUILD = 'dev'

@@ -4,7 +4,7 @@ set -e
 ./build.sh
 
 for EXCHANGE in "kraken" "binance" "coinbasepro"; do
-  EXCHANGE="${EXCHANGE}" REFERENCE_CURRENCY="EUR" SYMBOLS="BTC/EUR" TEST=y ./crypto-exporter.sh
+  EXCHANGE="${EXCHANGE}" REFERENCE_CURRENCY="EUR" SYMBOLS="BTC/EUR" TEST=y ./crypto-exporter
 done
 
 # ETH
@@ -12,17 +12,17 @@ if [ -n "${ETHERSCAN_API_KEY}" ]; then
   ADDRESSES='0x742d35Cc6634C0532925a3b844Bc454e4438f44e' # binance
   ADDRESSES="${ADDRESSES},0x53d284357ec70cE289D6D64134DfAc8E511c8a3D" # kraken
   TOKENS='[{"contract":"0x9b70740e708a083c6ff38df52297020f5dfaa5ee","name":"Daneel","short":"DAN","decimals": 10},{"contract":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","name":"USD Coin","short":"USDC","decimals": 6}]'
-  EXCHANGE="etherscan" ADDRESSES="${ADDRESSES}" TOKENS="${TOKENS}" API_KEY="${ETHERSCAN_API_KEY}" TEST=y ./crypto-exporter.sh
+  EXCHANGE="etherscan" ADDRESSES="${ADDRESSES}" TOKENS="${TOKENS}" API_KEY="${ETHERSCAN_API_KEY}" TEST=y ./crypto-exporter
 fi
 
 # Ripple
 ADDRESSES='rDbWJ9C7uExThZYAwV8m6LsZ5YSX3sa6US' # ripple.com
 ADDRESSES="${ADDRESSES},rEy8TFcrAPvhpKrwyrscNYyqBGUkE9hKaJ" # binance
 ADDRESSES="${ADDRESSES},rLHzPsX6oXkzU2qL12kHCH8G8cnZv1rBJh" # kraken
-EXCHANGE="ripple" ADDRESSES="${ADDRESSES}" TEST=y ./crypto-exporter.sh
+EXCHANGE="ripple" ADDRESSES="${ADDRESSES}" TEST=y ./crypto-exporter
 
 # Stellar
 ADDRESSES='GA5XIGA5C7QTPTWXQHY6MCJRMTRZDOSHR6EFIBNDQTCQHG262N4GGKTM'  # kraken
 ADDRESSES="${ADDRESSES},GD6RMKTCHQGEOGYWIKSY5G7QWXPZOAEZIKPKEVZUAXOQCZRVBRRFGLJM"  # NydroEnergy
 ADDRESSES="${ADDRESSES},GCNSGHUCG5VMGLT5RIYYZSO7VQULQKAJ62QA33DBC5PPBSO57LFWVV6P"  # InterstellarExchange
-EXCHANGE="stellar" ADDRESSES="${ADDRESSES}" TEST=y ./crypto-exporter.sh
+EXCHANGE="stellar" ADDRESSES="${ADDRESSES}" TEST=y ./crypto-exporter
