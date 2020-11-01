@@ -83,7 +83,7 @@ docker run --rm -it -p 9999:9999 \
   -e LOGLEVEL=DEBUG \
   -e PORT=9999 \
   --name coinbasepro-exporter \
-  ixdotai/crypto-exporter:latest
+  registry.gitlab.com/ix.ai/crypto-exporter:latest
 ```
 
 ### Supported variables
@@ -163,4 +163,5 @@ Starting with version v0.5.1, the images are multi-arch, with builds for amd64, 
 ## Resources:
 * GitLab: https://gitlab.com/ix.ai/crypto-exporter
 * GitHub: https://github.com/ix-ai/crypto-exporter
+* GitLab Registry: https://gitlab.com/ix.ai/crypto-exporter/container_registry
 * Docker Hub: https://hub.docker.com/r/ixdotai/crypto-exporter

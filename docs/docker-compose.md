@@ -5,7 +5,7 @@ version: '3.7'
 
 services:
   binance:
-    image: ixdotai/crypto-exporter:latest
+    image: registry.gitlab.com/ix.ai/crypto-exporter:latest
     networks:
       - exporters
     environment:
@@ -14,7 +14,7 @@ services:
       API_SECRET: your_api_secret
       LOGLEVEL: DEBUG
   bitfinex:
-    image: ixdotai/crypto-exporter:latest
+    image: registry.gitlab.com/ix.ai/crypto-exporter:latest
     networks:
       - exporters
     environment:
@@ -23,7 +23,7 @@ services:
       API_SECRET: your_api_secret
       LOGLEVEL: WARNING
   coinbasepro:
-    image: ixdotai/crypto-exporter:v1.0.0
+    image: registry.gitlab.com/ix.ai/crypto-exporter:v1.0.0
     networks:
       - exporters
     environment:
