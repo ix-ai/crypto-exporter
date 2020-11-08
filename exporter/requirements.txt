@@ -2,4 +2,4 @@ prometheus_client==0.8.0
 requests==2.24.0
 pygelf==0.3.6
 stellar-sdk==2.8.1
-ccxt==1.36.80
+ccxt==1.37.34
