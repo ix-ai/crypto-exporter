@@ -146,5 +146,5 @@ class EtherscanConnector(Connector):
                     })
             if self.settings['tokens']:
                 self.retrieve_tokens()
-        log.debug(f'Accounts: {self._accounts}')
+        log.log(5, f'Accounts: {self._accounts}')
         return self._accounts

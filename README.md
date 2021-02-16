@@ -102,7 +102,7 @@ docker run --rm -it -p 9999:9999 \
 | `REFERENCE_CURRENCIES`   | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
 | `DEFAULT_EXCHANGE_TYPE`  | -              | NO            | Some exchanges support multiple types (for example: binance supports `future`). You can set this here |
 | `TIMEOUT`                | `10`           | NO            | Timeout in seconds for each request sent to an exchange API |
-| `LOGLEVEL`               | `INFO`         | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels) |
+| `LOGLEVEL`               | `INFO`         | NO            | [Logging Level](https://docs.python.org/3/library/logging.html#levels). Additionally, you can specify `TRACE` for a really verbose logging |
 | `GELF_HOST`              | -              | NO            | If set, the exporter will also log to this [GELF](https://docs.graylog.org/en/3.0/pages/gelf.html) capable host on UDP |
 | `GELF_PORT`              | `12201`        | NO            | Ignored, if `GELF_HOST` is unset. The UDP port for GELF logging |
 | `PORT`                   | `9188`         | NO            | The port for prometheus metrics |

@@ -50,4 +50,4 @@ class StellarConnector(Connector):
                         f'{account}': float(balance.get('balance'))
                     })
 
-        log.debug(f'Found the following accounts: {self._accounts}')
+        log.log(5, f'Found the following accounts: {self._accounts}')

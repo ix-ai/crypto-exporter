@@ -128,5 +128,5 @@ class EthplorerConnector(Connector):
                             address: float(balance)
                         })
 
-        log.debug(f'Accounts: {self._accounts}')
+        log.log(5, f'Accounts: {self._accounts}')
         return self._accounts

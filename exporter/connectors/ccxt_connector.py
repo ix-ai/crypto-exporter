@@ -157,7 +157,7 @@ class CcxtConnector(Connector):
                     })
         except TypeError:
             log.debug('No tickers to process')
-        log.debug(f"Found these tickers: {self._tickers}")
+        log.log(5, f"Found these tickers: {self._tickers}")
 
     def __process_ledger_entry_native_amount(self, transaction):
         """ Processes the transaction and calculates the totals based on currency and native_amount """
@@ -179,7 +179,7 @@ class CcxtConnector(Connector):
         return tickers
 
     def __fetch_each_ticker(self, symbols):
-        log.debug(f'Fetching for these individual entries: {symbols}')
+        log.log(5, f'Fetching for these individual entries: {symbols}')
         tickers = {}
         for symbol in symbols:
             retrieve_ticker = False
@@ -212,7 +212,7 @@ class CcxtConnector(Connector):
         log.debug(f'Fetching markets with force={force}')
         if force or not self.__markets:
             self.__markets = self.__load_retry('fetch_markets', retries=5)
-            log.debug(f'Found these markets: {self.__markets}')
+            log.log(5, f'Found these markets: {self.__markets}')
         markets = self.__markets
         return markets
 
@@ -251,7 +251,7 @@ class CcxtConnector(Connector):
         ):
             ledger += self.__fetch_ledger(account=account, end=ledger[0]['id'])
             ledger = [i for n, i in enumerate(ledger) if i not in ledger[n + 1:]]
-        log.debug(f'Found this ledger: {ledger} (entries: {len(ledger)})')
+        log.log(5, f'Found this ledger: {ledger} (entries: {len(ledger)})')
         return ledger
 
     def retrieve_tickers(self):
@@ -272,7 +272,7 @@ class CcxtConnector(Connector):
 
         self.__process_tickers(tickers)
 
-        log.debug(f"Found the following ticker rates: {self._tickers}")
+        log.log(5, f"Found the following ticker rates: {self._tickers}")
 
     def retrieve_accounts(self):
         """ Connects to the exchange, downloads the accounts data and saves it in self._accounts """
@@ -297,7 +297,7 @@ class CcxtConnector(Connector):
         except AttributeError:
             log.debug('No accounts found to process')
 
-        log.debug(f"Found the following accounts: {self._accounts}")
+        log.log(5, f"Found the following accounts: {self._accounts}")
 
     def __process_ledger_native_amount(self, ledger=None):
         if not ledger:

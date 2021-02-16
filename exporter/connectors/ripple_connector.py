@@ -58,4 +58,4 @@ class RippleConnector(Connector):
                     })
 
             time.sleep(1)  # Don't hit the rate limit
-        log.debug(f"Found the following accounts: {self._accounts}")
+        log.log(5, f"Found the following accounts: {self._accounts}")
