@@ -9,14 +9,15 @@ RUN set -xeu; \
       musl-dev \
       libffi-dev \
       make \
+      openssl-dev \
+      cargo \
     ; \
     python3 -m ensurepip; \
     pip3 install -U \
       pip \
       wheel \
     ;
-RUN pip3 --use-feature=2020-resolver wheel -r /work/exporter/requirements.txt -w /work/wheels
-COPY exporter /work/exporter/
+RUN pip3 wheel -r /work/exporter/requirements.txt -w /work/wheels
 
 FROM alpine:latest
 LABEL maintainer="docker@ix.ai"
@@ -41,6 +42,7 @@ RUN set -xeu; \
     adduser -G crypto-exporter -D -H crypto-exporter
 
 COPY crypto-exporter /usr/local/bin/crypto-exporter
+COPY exporter /exporter
 
 USER crypto-exporter:crypto-exporter
 
