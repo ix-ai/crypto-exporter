@@ -11,6 +11,8 @@ Prometheus exporter, written in python, for different crypto exchanges
 
 **Warning**: This documentation applies for version `v1.x.x`.
 
+**Note**: Please open any issues or pull/merge requests in [GitLab](https://gitlab.com/ix.ai/crypto-exporter/).
+
 ## Documentation
 
 Check out the [docs/](docs/) folder.
@@ -163,5 +165,6 @@ Starting with version v0.5.1, the images are multi-arch, with builds for amd64, 
 ## Resources:
 * GitLab: https://gitlab.com/ix.ai/crypto-exporter
 * GitHub: https://github.com/ix-ai/crypto-exporter
+* Azure: https://dev.azure.com/ixdotai/_git/crypto-exporter
 * GitLab Registry: https://gitlab.com/ix.ai/crypto-exporter/container_registry
 * Docker Hub: https://hub.docker.com/r/ixdotai/crypto-exporter
