@@ -1,5 +1,8 @@
 FROM alpine:latest as builder
 COPY exporter/requirements.txt /work/exporter/requirements.txt
+
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST="1"
+
 RUN set -xeu; \
     mkdir -p /work/wheels; \
     apk add \
@@ -10,14 +13,13 @@ RUN set -xeu; \
       libffi-dev \
       make \
       openssl-dev \
-      cargo \
     ; \
     python3 -m ensurepip; \
     pip3 install -U \
-      pip \
       wheel \
-    ;
-RUN pip3 wheel -r /work/exporter/requirements.txt -w /work/wheels
+      pip
+
+RUN pip3 wheel --prefer-binary -r /work/exporter/requirements.txt -w /work/wheels
 
 FROM alpine:latest
 LABEL maintainer="docker@ix.ai"
@@ -32,7 +34,6 @@ RUN set -xeu; \
     pip3 install --no-cache-dir -U pip;\
     pip3 install \
       --no-index \
-      --use-feature=2020-resolver \
       --no-cache-dir \
       --find-links /wheels \
       --requirement /exporter/requirements.txt \
