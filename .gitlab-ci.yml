@@ -1,6 +1,7 @@
 ---
 variables:
   DOCKERHUB_REPO_NAME: crypto-exporter
+  GITHUB_REPO_NAME: ix-ai/crypto-exporter
   ENABLE_ARM64: 'true'
   ENABLE_ARMv7: 'true'
   ENABLE_ARMv6: 'true'
