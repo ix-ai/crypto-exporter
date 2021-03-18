@@ -165,6 +165,6 @@ Starting with version v0.5.1, the images are multi-arch, with builds for amd64, 
 ## Resources:
 * GitLab: https://gitlab.com/ix.ai/crypto-exporter
 * GitHub: https://github.com/ix-ai/crypto-exporter
-* Azure: https://dev.azure.com/ixdotai/_git/crypto-exporter
 * GitLab Registry: https://gitlab.com/ix.ai/crypto-exporter/container_registry
+* GitHub Registry: https://ghcr.io/ix-ai/crypto-exporter
 * Docker Hub: https://hub.docker.com/r/ixdotai/crypto-exporter
