@@ -1,4 +1,4 @@
-prometheus_client==0.9.0
+prometheus_client==0.10.1
 requests==2.25.1
 pygelf==0.4.0
 ccxt==1.43.74
