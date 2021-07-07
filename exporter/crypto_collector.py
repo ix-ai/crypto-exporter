@@ -2,8 +2,11 @@
 """ Prometheus Exporter for Crypto Exchanges """
 
 import time
+import logging
 from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, StateSetMetricFamily
 from .lib import constants
+
+log = logging.getLogger('crypto-exporter')
 
 
 class CryptoCollector():
@@ -66,7 +69,7 @@ class CryptoCollector():
         return GaugeMetricFamily(
             'account_balance',
             'Account Balance',
-            labels=['currency', 'account', 'exchange']
+            labels=['currency', 'reference_currency', 'account', 'exchange']
         )
 
     def metric_exchange_rate(self):
@@ -108,19 +111,35 @@ class CryptoCollector():
         accounts = exchange.get_accounts()
         account_balance = self.metric_account_balance()
         for currency in accounts:
+            account_pairs=[]
             for account_type in accounts[currency]:
                 if (
                         accounts[currency].get(account_type,)
                         and not (accounts[currency].get(account_type, 0) == 0)
                 ):
-                    account_balance.add_metric(
-                        value=accounts[currency][account_type],
-                        labels=[
-                            f'{currency}',
-                            f'{account_type}',
-                            f'{exchange.exchange}',
-                        ]
-                    )
+                    for reference_currency in ("USD", "EUR", currency):
+                        value = accounts[currency][account_type]
+                        pair = "{}/{}".format(currency, reference_currency)
+
+                        if reference_currency != currency:
+                            try:
+                                value = accounts[currency][account_type] * tickers[pair]["value"]
+                            except KeyError:
+                                log.warning("Can't find rate for currency pair {}".format(pair))
+                                reference_currency = currency
+                                pair = "{}/{}".format(currency, reference_currency)
+
+                        if pair not in account_pairs:
+                            account_balance.add_metric(
+                                value=value,
+                                labels=[
+                                    f'{currency}',
+                                    f'{reference_currency}',
+                                    f'{account_type}',
+                                    f'{exchange.exchange}',
+                                ]
+                            )
+                            account_pairs.append(pair)
         yield account_balance
 
         exchange.retrieve_transactions()
