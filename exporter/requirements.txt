@@ -1,5 +1,5 @@
-prometheus_client==0.10.1
-requests==2.25.1
+prometheus_client==0.11.0
+requests==2.26.0
 pygelf==0.4.0
-ccxt==1.48.41
+ccxt==1.55.95
 stellar-sdk>=2.11.1
