@@ -13,6 +13,7 @@ RUN set -xeu; \
       libffi-dev \
       make \
       openssl-dev \
+      cargo \
     ; \
     python3 -m ensurepip; \
     pip3 install -U \
