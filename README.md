@@ -100,6 +100,7 @@ docker run --rm -it -p 9999:9999 \
 | `NONCE`                  | `milliseconds` | NO            | Some exchanges (looking at you, `coinbasepro`) don't support nonce in milliseconds, but want seconds |
 | `ENABLE_TICKERS`         | `true`         | NO            | Set this to anything else in order to disable retrieving the ticker rates |
 | `ENABLE_TRANSACTIONS`    | `false`        | NO            | Set this to `true` in order to enable retrieving the transaction totals. See also below [ENABLE_TRANSACTIONS](#enable-transactions) |
+| `DISABLE_FETCH_TICKERS`  | `false`        | NO            | Set this to `true` in order to use the slower method for fetching the tickers instead. See also [Multiple Tickers For All Or Many Symbols](https://docs.ccxt.com/en/latest/manual.html#multiple-tickers-for-all-or-many-symbols) |
 | `SYMBOLS`                | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
 | `REFERENCE_CURRENCIES`   | -              | NO            | See below for explanation ([SYMBOLS and REFERENCE_CURRENCIES](#symbols-and-referece_currencies)) |
 | `DEFAULT_EXCHANGE_TYPE`  | -              | NO            | Some exchanges support multiple types (for example: binance supports `future`). You can set this here |
