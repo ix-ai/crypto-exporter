@@ -269,7 +269,7 @@ class CcxtConnector(Connector):
 
         log.debug('Retrieving tickers')
         tickers = {}
-        if self.__exchange.has['fetchTickers'] and not self.settings['disable_fetch_tickers']:
+        if self.__exchange.has['fetchTickers'] and (not self.settings.get('disable_fetch_tickers')):
             tickers = self.__fetch_tickers()
         else:
             log.warning(constants.WARN_TICKER_SLOW_LOAD)
