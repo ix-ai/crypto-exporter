@@ -9,11 +9,15 @@
 
 Prometheus exporter, written in python, for different crypto exchanges
 
+## Archive Notice
+
+Please note that this software is **no longer maintained** and will no longer receive any updates.
+
+## Documentation
+
 **Warning**: This documentation applies for version `v1.x.x`.
 
 **Note**: Please open any issues or pull/merge requests in [GitLab](https://gitlab.com/ix.ai/crypto-exporter/).
-
-## Documentation
 
 Check out the [docs/](docs/) folder.
 
